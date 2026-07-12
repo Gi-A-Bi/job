@@ -1026,6 +1026,14 @@ function renderContinueList() {
   const registry = loadRegistry();
   const saved = getSavedStudent();
   let html = '';
+  // 예전 버전(한 기기 모드)이 이 브라우저에 남긴 데이터가 있으면 구출 버튼 표시
+  if (localStorage.getItem(STORAGE_KEY) || localStorage.getItem('classroom_jobs_data_v1')) {
+    html += `<div class="alert info" style="text-align: left;">
+      💾 이 기기에 <strong>예전 버전의 학급 데이터</strong>(직업 목록·지원서·배정 결과)가 남아있어요.<br>
+      <button class="btn btn-ghost" style="margin-top: 8px;" onclick="exportLegacyBackup()">JSON 파일로 내려받기</button>
+      <span style="font-size: 12px; display: block; margin-top: 6px;">내려받은 파일은 학급을 만든 뒤 선생님 화면의 "백업 불러오기"로 가져올 수 있어요.</span>
+    </div>`;
+  }
   registry.forEach(c => {
     html += `<button class="entry-choice" onclick="resumeTeacher('${c.code}')">
       <span class="ec-title">📂 ${escapeHtml(c.className || '내 학급')} 계속하기</span>
@@ -1043,6 +1051,12 @@ function renderContinueList() {
 
 function getSavedStudent() {
   try { return JSON.parse(localStorage.getItem(STUDENT_KEY)); } catch (e) { return null; }
+}
+
+function exportLegacyBackup() {
+  const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('classroom_jobs_data_v1');
+  if (!raw) { alert('남아있는 예전 데이터가 없어요.'); return; }
+  downloadFile(raw, '예전학급데이터_백업.json', 'application/json');
 }
 
 function entryError(id, msg) {
