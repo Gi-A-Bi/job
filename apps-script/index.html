@@ -1,0 +1,1315 @@
+<!-- 우리 반 직업 배정소 — 화면(index.html) -->
+<!-- Google Apps Script에서 [파일 추가 → HTML], 이름은 정확히 'index' 으로 만들고 이 내용을 붙여넣으세요. -->
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css">
+
+<style>
+  :root{
+    --paper:#FBF6EC; --surface:#FFFFFF; --surface-2:#FFFCF6;
+    --ink:#3B3530; --ink-soft:#9C9286; --line:#EFE6D6;
+    --brand:#FF8A47; --brand-deep:#EE6A28; --brand-soft:#FFE7D6;
+    --mint:#43C08A; --mint-deep:#2E9E6B; --mint-soft:#DBF4E8;
+    --sky:#4FB3DE; --danger:#E2604F;
+    --shadow:0 10px 30px rgba(120,90,50,.10);
+    --shadow-sm:0 4px 14px rgba(120,90,50,.08);
+    --r:20px; --r-lg:28px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Pretendard',system-ui,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  .display{font-family:'Jua',sans-serif;font-weight:400;letter-spacing:.2px}
+
+  /* 종이 질감 점 무늬 */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:radial-gradient(rgba(180,150,110,.10) 1.2px,transparent 1.2px);
+    background-size:22px 22px;
+  }
+
+  .wrap{position:relative;z-index:1;max-width:600px;margin:0 auto;padding:22px 18px 64px}
+  .wrap.wide{max-width:980px}
+
+  /* ---- 화면 전환 ---- */
+  .screen{display:none;animation:rise .42s cubic-bezier(.2,.7,.3,1)}
+  .screen.on{display:block}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  /* ---- 상단 바 ---- */
+  .topbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;min-height:34px}
+  .back{
+    border:none;background:var(--surface);color:var(--ink-soft);
+    width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;
+    box-shadow:var(--shadow-sm);display:grid;place-items:center;flex:0 0 auto;transition:.15s;
+  }
+  .back:hover{color:var(--brand-deep);transform:translateX(-2px)}
+  .topbar .crumb{font-size:14px;color:var(--ink-soft);font-weight:600}
+  .topbar .spacer{flex:1}
+  .pill{
+    background:var(--mint-soft);color:var(--mint-deep);font-weight:700;font-size:13px;
+    padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;
+  }
+  .pill.brand{background:var(--brand-soft);color:var(--brand-deep)}
+
+  /* ---- 카드/패널 ---- */
+  .card{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:26px 22px}
+  .card + .card{margin-top:16px}
+  h1.title{font-size:30px;margin:.1em 0 .25em;line-height:1.2}
+  p.sub{color:var(--ink-soft);margin:.2em 0 0;font-size:15px}
+
+  /* ---- 폼 ---- */
+  label.field{display:block;margin:18px 0 0}
+  label.field .lab{font-weight:700;font-size:14px;margin-bottom:7px;display:block}
+  .input{
+    width:100%;border:2px solid var(--line);border-radius:14px;background:var(--surface-2);
+    padding:14px 15px;font-size:16px;font-family:inherit;color:var(--ink);transition:.15s;
+  }
+  .input:focus{outline:none;border-color:var(--brand);background:#fff;box-shadow:0 0 0 4px var(--brand-soft)}
+  textarea.input{resize:vertical;min-height:84px;line-height:1.55}
+  .hint{font-size:13px;color:var(--ink-soft);margin-top:7px}
+
+  /* ---- 버튼 ---- */
+  .btn{
+    border:none;border-radius:16px;padding:15px 20px;font-size:16px;font-weight:700;
+    font-family:inherit;cursor:pointer;transition:transform .12s,box-shadow .12s,background .15s;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .btn:active{transform:translateY(1px) scale(.99)}
+  .btn-primary{background:var(--brand);color:#fff;box-shadow:0 6px 0 var(--brand-deep)}
+  .btn-primary:hover{background:var(--brand-deep);box-shadow:0 4px 0 var(--brand-deep);transform:translateY(2px)}
+  .btn-primary:active{box-shadow:0 2px 0 var(--brand-deep);transform:translateY(4px)}
+  .btn-mint{background:var(--mint);color:#fff;box-shadow:0 6px 0 var(--mint-deep)}
+  .btn-mint:hover{background:var(--mint-deep);box-shadow:0 4px 0 var(--mint-deep);transform:translateY(2px)}
+  .btn-ghost{background:var(--surface-2);color:var(--ink);border:2px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--brand);color:var(--brand-deep)}
+  .btn-block{display:flex;width:100%}
+  .btn-lg{padding:18px 22px;font-size:18px}
+  .btn-sm{padding:9px 13px;font-size:14px;border-radius:12px}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+  /* ---- 역할 선택(홈) ---- */
+  .hero{text-align:center;padding:14px 0 2px}
+  .hero .badge{display:inline-flex;gap:7px;align-items:center;background:#fff;border-radius:999px;
+    padding:8px 16px;font-weight:700;color:var(--brand-deep);box-shadow:var(--shadow-sm);font-size:14px}
+  .hero h1{font-size:38px;margin:18px 0 8px;line-height:1.15}
+  .hero p{color:var(--ink-soft);margin:0;font-size:16px}
+  .board-art{display:flex;justify-content:center;margin:22px 0 8px}
+  .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+  .role{
+    background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow);
+    padding:26px 16px;text-align:center;cursor:pointer;border:3px solid transparent;transition:.18s;
+  }
+  .role:hover{transform:translateY(-4px);border-color:var(--brand)}
+  .role .ic{width:70px;height:70px;border-radius:22px;display:grid;place-items:center;margin:0 auto 12px;font-size:36px}
+  .role.teacher .ic{background:var(--brand-soft);color:var(--brand-deep)}
+  .role.student .ic{background:var(--mint-soft);color:var(--mint-deep)}
+  .role .rt{font-family:'Jua';font-size:21px}
+  .role .rs{font-size:13px;color:var(--ink-soft);margin-top:3px}
+
+  .float{animation:float 4s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+
+  /* ---- 개발자 마크 푸터 ---- */
+  .dev-footer{
+    text-align:center;margin-top:34px;padding:18px 14px 4px;
+    border-top:1px solid var(--line);
+    font-size:12px;color:var(--ink-soft);line-height:1.7;
+  }
+  .dev-footer strong{color:var(--ink);font-weight:700}
+  .dev-footer a{color:var(--ink-soft);text-decoration:none;transition:color .2s}
+  .dev-footer a:hover{color:var(--brand-deep);text-decoration:underline}
+
+  /* ---- 직업 보드(학생 선택) ---- */
+  .pick-help{display:flex;gap:8px;align-items:center;background:var(--surface);border-radius:16px;
+    padding:12px 15px;box-shadow:var(--shadow-sm);margin-bottom:14px;font-size:14px;color:var(--ink-soft)}
+  .pick-slots{display:flex;gap:8px;margin-bottom:16px}
+  .slot{flex:1;border:2px dashed var(--line);border-radius:14px;padding:10px;text-align:center;
+    background:var(--surface-2);min-height:58px;display:flex;flex-direction:column;justify-content:center;transition:.15s}
+  .slot .sn{font-size:11px;font-weight:700;color:var(--ink-soft)}
+  .slot .sv{font-weight:700;font-size:14px;margin-top:2px;color:var(--ink)}
+  .slot.filled{border-style:solid;border-color:var(--brand);background:#fff}
+
+  .job-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(146px,1fr));gap:12px}
+  .job{
+    position:relative;background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow-sm);
+    padding:16px 14px;cursor:pointer;border:2.5px solid transparent;transition:transform .14s,box-shadow .14s,border-color .14s;
+    text-align:left;
+  }
+  .job:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .job .chip{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:25px;margin-bottom:10px}
+  .job .jn{font-weight:700;font-size:15px;line-height:1.3}
+  .job .jd{font-size:12px;color:var(--ink-soft);line-height:1.4;margin-top:5px}
+  .job .cap{font-size:12px;color:var(--ink-soft);margin-top:6px;font-weight:600}
+  .job .pop{position:absolute;top:10px;right:10px;color:#F4B73E;font-size:15px}
+  .job.picked{border-color:var(--brand)}
+  .job:hover .chip{animation:wiggle .5s}
+  @keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-9deg)}75%{transform:rotate(9deg)}}
+  .pin{
+    position:absolute;top:-10px;left:-10px;width:34px;height:34px;border-radius:50%;
+    background:var(--brand);color:#fff;font-family:'Jua';font-size:17px;display:grid;place-items:center;
+    box-shadow:0 4px 10px rgba(238,106,40,.4);animation:pop .3s cubic-bezier(.2,1.5,.4,1);border:3px solid #fff;
+  }
+  @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+  /* 7색 색종이 팔레트 */
+  .c0 .chip{background:#FFE3DE;color:#E1503F}
+  .c1 .chip{background:#FFF0D2;color:#C77F1B}
+  .c2 .chip{background:#DBF3E6;color:#2E9E6B}
+  .c3 .chip{background:#D6EFF7;color:#2592AE}
+  .c4 .chip{background:#E2EBFD;color:#3D6FD6}
+  .c5 .chip{background:#ECE4FB;color:#7D4FD0}
+  .c6 .chip{background:#FFE3EF;color:#D85C8B}
+
+  /* ---- 완료 화면 ---- */
+  .done-wrap{text-align:center;padding:18px 0}
+  .stamp{width:120px;height:120px;border-radius:50%;background:var(--mint-soft);color:var(--mint-deep);
+    display:grid;place-items:center;margin:6px auto 18px;font-size:60px;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+  .result-card{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:24px;margin-top:18px}
+  .result-card .big-chip{width:88px;height:88px;border-radius:24px;display:grid;place-items:center;font-size:46px;margin:0 auto 12px}
+
+  /* ---- 탭 (선생님 메인) ---- */
+  .tabs{display:flex;gap:6px;background:var(--surface);border-radius:18px;padding:6px;box-shadow:var(--shadow-sm);margin-bottom:18px;overflow-x:auto}
+  .tab{flex:1;min-width:84px;border:none;background:transparent;padding:11px 8px;border-radius:13px;font-weight:700;
+    font-size:14px;color:var(--ink-soft);cursor:pointer;font-family:inherit;white-space:nowrap;transition:.15s;display:flex;align-items:center;justify-content:center;gap:5px}
+  .tab.on{background:var(--brand);color:#fff}
+  .tab .ti{font-size:16px}
+  .panel{display:none}
+  .panel.on{display:block;animation:rise .3s}
+
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin:2px 0 14px;gap:10px}
+  .sec-head h2{font-family:'Jua';font-size:20px;margin:0}
+  .round-nav{display:flex;align-items:center;gap:6px}
+  .round-nav .rbtn{border:none;background:var(--surface-2);color:var(--ink-soft);width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:16px;display:grid;place-items:center;transition:.15s}
+  .round-nav .rbtn:hover:not(:disabled){color:var(--brand-deep);background:var(--brand-soft)}
+  .round-nav .rbtn:disabled{opacity:.3;cursor:default}
+  .round-nav .round-now{font-family:'Jua';font-size:16px;min-width:54px;text-align:center;color:var(--ink)}
+  .round-banner{border-radius:14px;padding:12px 15px;font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .round-banner.open{background:var(--mint-soft);color:var(--mint-deep)}
+  .round-banner.published{background:var(--brand-soft);color:var(--brand-deep)}
+  .round-banner.past{background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--line)}
+  .round-pills{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+  .round-pills .rpill{border:2px solid var(--line);background:var(--surface);color:var(--ink-soft);border-radius:999px;padding:5px 13px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:.15s}
+  .round-pills .rpill:hover{border-color:var(--brand)}
+  .round-pills .rpill.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .sec-head .muted{font-size:13px;color:var(--ink-soft)}
+
+  /* 직업 편집 행 */
+  .jrow{display:flex;gap:10px;align-items:center;background:var(--surface);border-radius:16px;padding:12px;box-shadow:var(--shadow-sm);margin-bottom:10px}
+  .jrow .jchip{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:24px;cursor:pointer;flex:0 0 auto;border:2px solid transparent;transition:.15s}
+  .jrow .jchip:hover{border-color:var(--brand)}
+  .jrow .jmid{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+  .jrow .jname{width:100%;border:2px solid var(--line);border-radius:11px;padding:10px 12px;font-size:15px;font-family:inherit;font-weight:600}
+  .jrow .jname:focus{outline:none;border-color:var(--brand)}
+  .jrow .jdesc{width:100%;border:2px solid var(--line);border-radius:10px;padding:7px 11px;font-size:13px;font-family:inherit;color:var(--ink-soft);background:var(--surface-2)}
+  .jrow .jdesc:focus{outline:none;border-color:var(--brand);color:var(--ink)}
+  .stepper{display:flex;align-items:center;gap:0;background:var(--surface-2);border:2px solid var(--line);border-radius:11px;overflow:hidden;flex:0 0 auto}
+  .stepper button{border:none;background:transparent;width:32px;height:38px;font-size:18px;cursor:pointer;color:var(--ink-soft)}
+  .stepper button:hover{color:var(--brand-deep)}
+  .stepper .num{width:26px;text-align:center;font-weight:700;font-size:15px}
+  .star-btn{border:none;background:transparent;font-size:22px;cursor:pointer;color:#D9CFC0;flex:0 0 auto;transition:.15s}
+  .star-btn.on{color:#F4B73E;transform:scale(1.12)}
+  .del-btn{border:none;background:transparent;color:var(--ink-soft);font-size:19px;cursor:pointer;flex:0 0 auto}
+  .del-btn:hover{color:var(--danger)}
+
+  /* 학생 명단 */
+  .stu-row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+  .stu-row .num{width:64px;border:2px solid var(--line);border-radius:11px;padding:9px;text-align:center;font-family:inherit;font-size:15px}
+  .stu-row .nm{flex:1;border:2px solid var(--line);border-radius:11px;padding:9px 12px;font-family:inherit;font-size:15px}
+  .stu-row input:focus{outline:none;border-color:var(--brand)}
+
+  /* 지원/배정 리스트 */
+  .list-row{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:14px;padding:13px 15px;box-shadow:var(--shadow-sm);margin-bottom:9px}
+  .who{flex:0 0 auto;min-width:72px}
+  .who .n{font-weight:700;font-size:15px}
+  .who .num2{font-size:12px;color:var(--ink-soft)}
+  .choices{flex:1;display:flex;flex-wrap:wrap;gap:6px}
+  .ch{font-size:12.5px;padding:4px 9px;border-radius:999px;background:var(--surface-2);border:1.5px solid var(--line);font-weight:600}
+  .ch b{color:var(--brand-deep);margin-right:3px}
+  .reason{font-size:13px;color:var(--ink-soft);margin-top:4px;width:100%}
+  .badge-lv{font-family:'Jua';font-size:13px;min-width:24px;height:24px;border-radius:50%;display:inline-grid;place-items:center;color:#fff}
+  .lv1{background:var(--mint)} .lv2{background:var(--sky)} .lv3{background:#A77BE8} .lv0{background:#C2B6A6}
+
+  /* 성실도 선택 */
+  .dil{display:flex;gap:4px;flex:0 0 auto}
+  .dil button{border:2px solid var(--line);background:var(--surface-2);border-radius:10px;padding:6px 9px;font-size:12.5px;
+    font-weight:700;cursor:pointer;color:var(--ink-soft);font-family:inherit;transition:.12s}
+  .dil button.on.good{background:var(--mint);border-color:var(--mint);color:#fff}
+  .dil button.on.mid{background:#F4B73E;border-color:#F4B73E;color:#fff}
+  .dil button.on.low{background:#E2604F;border-color:#E2604F;color:#fff}
+
+  /* 빈 상태 */
+  .empty{text-align:center;padding:36px 16px;color:var(--ink-soft)}
+  .empty .ic{font-size:46px;opacity:.5;margin-bottom:10px}
+  .empty p{margin:0;font-size:15px}
+
+  /* 코드 표시 */
+  .codebox{background:linear-gradient(135deg,var(--brand-soft),#FFF3E8);border-radius:22px;padding:24px;text-align:center;margin-top:8px}
+  .codebox .lab{font-size:13px;color:var(--brand-deep);font-weight:700}
+  .codebox .code{font-family:'Jua';font-size:44px;letter-spacing:8px;color:var(--brand-deep);margin:6px 0}
+  .codebox .copy{margin-top:6px}
+
+  /* 모달(아이콘 선택) */
+  .modal-bg{position:fixed;inset:0;background:rgba(60,45,30,.45);z-index:50;display:none;align-items:center;justify-content:center;padding:18px;animation:rise .2s}
+  .modal-bg.on{display:flex}
+  .modal{background:#fff;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.25);max-width:440px;width:100%;max-height:80vh;overflow:auto;padding:22px}
+  .modal h3{font-family:'Jua';margin:0 0 14px;font-size:19px}
+  .icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+  .icon-grid button{aspect-ratio:1;border:2px solid var(--line);background:var(--surface-2);border-radius:13px;font-size:22px;cursor:pointer;color:var(--ink);transition:.12s}
+  .icon-grid button:hover{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-deep);transform:scale(1.06)}
+
+  /* 토스트 */
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);z-index:80;
+    background:var(--ink);color:#fff;padding:13px 20px;border-radius:14px;font-weight:600;font-size:14.5px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;transition:.25s;pointer-events:none;max-width:90%}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{background:var(--danger)}
+
+  /* 로딩 */
+  .spin{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  .row-2{display:flex;gap:12px}
+  .row-2 > *{flex:1}
+  .mt{margin-top:16px}.mt-s{margin-top:10px}
+
+  @media (max-width:480px){
+    .hero h1{font-size:31px}
+    h1.title{font-size:25px}
+    .job-grid{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+
+  /* ===== 인쇄용 (게시판 카드) ===== */
+  #print-root{display:none}
+  .print-head{text-align:center;margin-bottom:8mm}
+  .print-head .pt{font-family:'Jua',sans-serif;font-size:28px;margin:0}
+  .print-head .ps{font-size:14px;color:#555;margin:4px 0 0}
+  .print-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm}
+  .pcard{border:2px solid #ddd;border-radius:14px;padding:6mm 4mm;text-align:center;page-break-inside:avoid;break-inside:avoid}
+  .pcard .pchip{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;font-size:28px;margin:0 auto 6px}
+  .pcard .pjob{font-family:'Jua',sans-serif;font-size:17px;line-height:1.25;margin:2px 0 6px;color:#222}
+  .pcard .pstu{font-size:15px;font-weight:700;color:#111}
+  .pcard .pstu .pnum{color:#888;font-weight:600;font-size:13px;margin-right:4px}
+
+  @media print{
+    body{background:#fff}
+    body::before{display:none}
+    #app,.toast,.modal-bg{display:none !important}
+    #print-root{display:block !important}
+    @page{size:A4;margin:14mm}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+
+<div id="app">
+
+  <!-- ===================== 홈: 역할 선택 ===================== -->
+  <section id="screen-home" class="screen on"><div class="wrap">
+    <div class="hero">
+      <span class="badge"><span class="ti ti-confetti"></span> 우리 반 직업 배정소</span>
+      <div class="board-art float">
+        <svg width="180" height="130" viewBox="0 0 180 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="14" y="20" width="152" height="98" rx="12" fill="#fff" stroke="#EFE6D6" stroke-width="3"/>
+          <rect x="14" y="20" width="152" height="22" rx="11" fill="#FFE7D6"/>
+          <circle cx="90" cy="14" r="7" fill="#FF8A47"/>
+          <rect x="26" y="52" width="40" height="26" rx="7" fill="#FFE3DE"/>
+          <rect x="73" y="52" width="40" height="26" rx="7" fill="#DBF3E6"/>
+          <rect x="120" y="52" width="34" height="26" rx="7" fill="#E2EBFD"/>
+          <rect x="26" y="86" width="40" height="22" rx="7" fill="#FFF0D2"/>
+          <rect x="73" y="86" width="40" height="22" rx="7" fill="#ECE4FB"/>
+          <rect x="120" y="86" width="34" height="22" rx="7" fill="#FFE3EF"/>
+        </svg>
+      </div>
+      <h1 class="display">한 달 직업,<br>재미있게 정해요</h1>
+      <p>학생이 직접 신청하고, 공정하게 자동 배정돼요</p>
+    </div>
+    <div class="role-grid">
+      <div class="role teacher" onclick="go('screen-teacher-gate')">
+        <div class="ic"><span class="ti ti-apple"></span></div>
+        <div class="rt">선생님</div>
+        <div class="rs">학급 만들기 · 관리</div>
+      </div>
+      <div class="role student" onclick="go('screen-student-code')">
+        <div class="ic"><span class="ti ti-mood-smile"></span></div>
+        <div class="rt">학생</div>
+        <div class="rs">직업 신청하기</div>
+      </div>
+    </div>
+    <div class="dev-footer">
+      © 우리 반 직업 배정소 · 개발: <strong>김민성</strong> · 오류 문의: <a href="mailto:healthydol@gmail.com">healthydol@gmail.com</a>
+    </div>
+  </div></section>
+
+  <!-- ===================== 선생님 진입 ===================== -->
+  <section id="screen-teacher-gate" class="screen"><div class="wrap">
+    <div class="topbar"><button class="back" onclick="go('screen-home')"><span class="ti ti-chevron-left"></span></button><span class="crumb">선생님</span></div>
+    <div class="card">
+      <h1 class="title display">반갑습니다 🍎</h1>
+      <p class="sub">처음이면 학급을 새로 만들고, 이미 만들었으면 관리로 들어가세요.</p>
+      <button class="btn btn-primary btn-block btn-lg mt" onclick="go('screen-create')"><span class="ti ti-plus"></span> 새 학급 만들기</button>
+      <button class="btn btn-ghost btn-block mt-s" onclick="go('screen-teacher-login')"><span class="ti ti-login-2"></span> 학급 관리 (이미 만들었어요)</button>
+    </div>
+  </div></section>
+
+  <!-- ===================== 학급 만들기 ===================== -->
+  <section id="screen-create" class="screen"><div class="wrap">
+    <div class="topbar"><button class="back" onclick="go('screen-teacher-gate')"><span class="ti ti-chevron-left"></span></button><span class="crumb">새 학급 만들기</span></div>
+    <div class="card" id="create-form">
+      <h1 class="title display">새 학급 만들기</h1>
+      <p class="sub">학급 이름과 관리 비밀번호만 정하면 끝이에요.</p>
+      <label class="field"><span class="lab">학급 이름</span>
+        <input id="c-name" class="input" placeholder="예) 3학년 2반" maxlength="20"></label>
+      <label class="field"><span class="lab">관리 비밀번호</span>
+        <input id="c-pw" class="input" type="password" placeholder="4자 이상, 선생님만 아는 비밀번호">
+        <span class="hint">학급을 관리할 때 쓰는 비밀번호예요. 학생에게는 알려주지 마세요.</span></label>
+      <button class="btn btn-primary btn-block btn-lg mt" id="c-submit" onclick="doCreateClass()"><span class="ti ti-sparkles"></span> 학급 만들기</button>
+    </div>
+    <div class="card" id="create-done" style="display:none">
+      <h1 class="title display">학급이 만들어졌어요! 🎉</h1>
+      <p class="sub">아래 <b>학급 코드</b>를 학생들에게 알려주세요. 학생은 이 코드로 들어와요.</p>
+      <div class="codebox">
+        <div class="lab">우리 학급 코드</div>
+        <div class="code" id="c-code">------</div>
+        <button class="btn btn-ghost btn-sm copy" onclick="copyCode()"><span class="ti ti-copy"></span> 코드 복사</button>
+      </div>
+      <button class="btn btn-mint btn-block btn-lg mt" onclick="enterMainAfterCreate()"><span class="ti ti-arrow-right"></span> 직업 설정하러 가기</button>
+    </div>
+  </div></section>
+
+  <!-- ===================== 선생님 로그인 ===================== -->
+  <section id="screen-teacher-login" class="screen"><div class="wrap">
+    <div class="topbar"><button class="back" onclick="go('screen-teacher-gate')"><span class="ti ti-chevron-left"></span></button><span class="crumb">학급 관리</span></div>
+    <div class="card">
+      <h1 class="title display">학급 관리</h1>
+      <p class="sub">학급 코드와 관리 비밀번호를 입력하세요.</p>
+      <label class="field"><span class="lab">학급 코드</span>
+        <input id="t-code" class="input" placeholder="6자리 코드" maxlength="6" style="text-transform:uppercase;letter-spacing:3px;font-weight:700"></label>
+      <label class="field"><span class="lab">관리 비밀번호</span>
+        <input id="t-pw" class="input" type="password" placeholder="비밀번호"></label>
+      <button class="btn btn-primary btn-block btn-lg mt" id="t-submit" onclick="doTeacherLogin()"><span class="ti ti-login-2"></span> 들어가기</button>
+    </div>
+  </div></section>
+
+  <!-- ===================== 학생: 학급 코드 ===================== -->
+  <section id="screen-student-code" class="screen"><div class="wrap">
+    <div class="topbar"><button class="back" onclick="go('screen-home')"><span class="ti ti-chevron-left"></span></button><span class="crumb">학생</span></div>
+    <div class="card">
+      <div style="text-align:center;font-size:48px;margin-bottom:6px">🙋</div>
+      <h1 class="title display" style="text-align:center">우리 반 코드를 입력해요</h1>
+      <p class="sub" style="text-align:center">선생님이 알려준 6자리 코드를 넣어주세요.</p>
+      <input id="s-code" class="input mt" placeholder="● ● ● ● ● ●" maxlength="6"
+        style="text-transform:uppercase;letter-spacing:10px;text-align:center;font-size:26px;font-family:'Jua'">
+      <button class="btn btn-mint btn-block btn-lg mt" id="s-code-submit" onclick="doStudentCode()"><span class="ti ti-arrow-right"></span> 들어가기</button>
+    </div>
+  </div></section>
+
+  <!-- ===================== 학생: 이름/번호 ===================== -->
+  <section id="screen-student-id" class="screen"><div class="wrap">
+    <div class="topbar"><button class="back" onclick="go('screen-student-code')"><span class="ti ti-chevron-left"></span></button><span class="crumb" id="s-class-name">우리 반</span></div>
+    <div class="card">
+      <h1 class="title display">나는 누구일까요?</h1>
+      <p class="sub">번호와 이름을 입력하면 신청할 수 있어요.</p>
+      <div class="row-2 mt">
+        <label class="field" style="margin-top:0;flex:0 0 96px"><span class="lab">번호</span>
+          <input id="s-num" class="input" inputmode="numeric" placeholder="번호" style="text-align:center"></label>
+        <label class="field" style="margin-top:0"><span class="lab">이름</span>
+          <input id="s-name" class="input" placeholder="이름"></label>
+      </div>
+      <button class="btn btn-mint btn-block btn-lg mt" id="s-id-submit" onclick="doStudentId()"><span class="ti ti-arrow-right"></span> 직업 고르러 가기</button>
+    </div>
+  </div></section>
+
+  <!-- ===================== 학생: 회차 선택 ===================== -->
+  <section id="screen-student-round" class="screen"><div class="wrap">
+    <div class="topbar"><button class="back" onclick="go('screen-student-id')"><span class="ti ti-chevron-left"></span></button><span class="crumb" id="s-round-who">○○○ 어린이</span></div>
+    <div class="card">
+      <div style="text-align:center;font-size:42px;margin-bottom:4px">🗂️</div>
+      <h1 class="title display" style="text-align:center">회차를 골라요</h1>
+      <p class="sub" style="text-align:center">지원할 회차를 선택하세요.</p>
+      <div id="s-round-list" class="mt"></div>
+    </div>
+  </div></section>
+
+  <!-- ===================== 학생: 직업 신청 ===================== -->
+  <section id="screen-student-apply" class="screen"><div class="wrap">
+    <div class="topbar">
+      <button class="back" onclick="go('screen-student-round')"><span class="ti ti-chevron-left"></span></button>
+      <span class="crumb" id="s-apply-who">○○○ 어린이</span>
+      <span class="spacer"></span><span class="pill" id="s-apply-month"></span>
+    </div>
+    <div class="pick-help"><span class="ti ti-hand-finger" style="font-size:18px;color:var(--brand)"></span>
+      하고 싶은 직업을 순서대로 눌러요. 가장 하고 싶은 게 1지망!</div>
+    <div class="pick-slots">
+      <div class="slot" id="slot-0"><span class="sn">1지망</span><span class="sv">아직 없어요</span></div>
+      <div class="slot" id="slot-1"><span class="sn">2지망</span><span class="sv">아직 없어요</span></div>
+      <div class="slot" id="slot-2"><span class="sn">3지망</span><span class="sv">아직 없어요</span></div>
+    </div>
+    <div class="job-grid" id="s-job-grid"></div>
+    <div class="card mt">
+      <label class="field" style="margin-top:0"><span class="lab">왜 이 직업을 하고 싶나요? <span style="color:var(--ink-soft);font-weight:400">(선택)</span></span>
+        <textarea id="s-reason" class="input" placeholder="예) 화분에 물 주는 걸 좋아해서 잘 키울 수 있어요!"></textarea>
+        <span class="hint">이유를 정성껏 쓰면 작은 도움이 돼요. 안 써도 괜찮아요.</span></label>
+      <button class="btn btn-mint btn-block btn-lg mt" id="s-apply-submit" onclick="doSubmitApplication()"><span class="ti ti-send"></span> 신청하기</button>
+    </div>
+  </div></section>
+
+  <!-- ===================== 학생: 완료/결과 ===================== -->
+  <section id="screen-student-done" class="screen"><div class="wrap">
+    <div class="done-wrap">
+      <div class="stamp"><span class="ti ti-check"></span></div>
+      <h1 class="title display" id="s-done-title">신청 완료! 🎉</h1>
+      <p class="sub" id="s-done-msg">선생님이 배정을 끝내면 결과를 볼 수 있어요.</p>
+    </div>
+    <div class="result-card" id="s-result" style="display:none"></div>
+    <div class="wrap" style="padding:0">
+      <button class="btn btn-mint btn-block mt" onclick="backToRounds()"><span class="ti ti-list"></span> 회차 목록으로</button>
+    </div>
+  </div></section>
+
+  <!-- ===================== 선생님 메인 ===================== -->
+  <section id="screen-teacher-main" class="screen"><div class="wrap wide">
+    <div class="topbar">
+      <button class="back" onclick="leaveTeacher()"><span class="ti ti-home"></span></button>
+      <span class="crumb" id="m-class-name">우리 반</span>
+      <span class="spacer"></span>
+      <span class="pill brand"><span class="ti ti-id-badge-2"></span> <span id="m-code"></span></span>
+      <span class="pill" id="m-month"></span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="jobs" onclick="switchTab('jobs')"><span class="ti ti-briefcase"></span> 직업</button>
+      <button class="tab" data-tab="students" onclick="switchTab('students')"><span class="ti ti-users"></span> 학생</button>
+      <button class="tab" data-tab="apps" onclick="switchTab('apps')"><span class="ti ti-mail-opened"></span> 지원현황</button>
+      <button class="tab" data-tab="assign" onclick="switchTab('assign')"><span class="ti ti-wand"></span> 배정</button>
+    </div>
+
+    <!-- 직업 탭 -->
+    <div class="panel on" id="panel-jobs">
+      <div class="sec-head"><h2>직업 목록</h2><span class="muted" id="jobs-count"></span></div>
+      <div id="jobs-list"></div>
+      <button class="btn btn-ghost btn-block mt-s" onclick="addJobRow()"><span class="ti ti-plus"></span> 직업 추가</button>
+      <div class="row-2 mt">
+        <button class="btn btn-ghost" onclick="loadSampleJobs()"><span class="ti ti-bulb"></span> 예시 불러오기</button>
+        <button class="btn btn-primary" id="jobs-save" onclick="saveJobs()"><span class="ti ti-device-floppy"></span> 저장</button>
+      </div>
+      <p class="hint mt-s">⭐ 표시는 '인기 직업'이에요. 인기 직업을 한 번도 못 해본 학생에게 작은 가산점이 가서 골고루 돌아가요.</p>
+    </div>
+
+    <!-- 학생 탭 -->
+    <div class="panel" id="panel-students">
+      <div class="sec-head"><h2>학생 명단</h2><span class="muted" id="stu-count"></span></div>
+      <div id="stu-list"></div>
+      <button class="btn btn-ghost btn-block mt-s" onclick="addStuRow()"><span class="ti ti-plus"></span> 학생 추가</button>
+      <div class="card mt">
+        <span class="lab" style="font-weight:700;font-size:14px">한 번에 붙여넣기</span>
+        <p class="hint" style="margin:4px 0 8px">엑셀이나 명단에서 "번호 이름"을 줄마다 붙여넣고 채우기를 누르세요. (예: <code>1 김하늘</code>)</p>
+        <textarea id="stu-paste" class="input" placeholder="1 김하늘&#10;2 이바다&#10;3 박송이"></textarea>
+        <button class="btn btn-ghost btn-block mt-s" onclick="parsePaste()"><span class="ti ti-clipboard-check"></span> 명단 채우기</button>
+      </div>
+      <button class="btn btn-primary btn-block mt" id="stu-save" onclick="saveStudents()"><span class="ti ti-device-floppy"></span> 명단 저장</button>
+    </div>
+
+    <!-- 지원현황 탭 -->
+    <div class="panel" id="panel-apps">
+      <div class="sec-head"><h2>지원 현황</h2>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="muted" id="apps-count"></span>
+          <button class="btn btn-ghost btn-sm" onclick="loadApplications()"><span class="ti ti-refresh"></span> 새로고침</button>
+        </div>
+      </div>
+      <div id="apps-list"></div>
+    </div>
+
+    <!-- 배정 탭 -->
+    <div class="panel" id="panel-assign">
+      <div class="sec-head">
+        <h2 id="assign-title">직업 배정</h2>
+        <div class="round-nav">
+          <button class="rbtn" id="round-prev" onclick="viewRoundDelta(-1)" title="이전 회차"><span class="ti ti-chevron-left"></span></button>
+          <span class="round-now" id="round-now">1회차</span>
+          <button class="rbtn" id="round-next" onclick="viewRoundDelta(1)" title="다음 회차"><span class="ti ti-chevron-right"></span></button>
+        </div>
+      </div>
+      <div id="round-banner" class="round-banner"></div>
+      <button class="btn btn-primary btn-block btn-lg" id="run-assign" onclick="runAssign()"><span class="ti ti-wand"></span> 자동 배정 실행하기</button>
+      <button class="btn btn-ghost btn-block mt-s" id="print-btn" style="display:none" onclick="printAssignments()"><span class="ti ti-printer"></span> 결과 인쇄하기 (게시용)</button>
+      <div id="assign-result" class="mt"></div>
+      <div id="assign-actions" class="mt" style="display:none"></div>
+    </div>
+  </div></section>
+
+</div>
+
+<!-- 아이콘 선택 모달 -->
+<div class="modal-bg" id="icon-modal" onclick="if(event.target===this)closeIconModal()">
+  <div class="modal">
+    <h3>아이콘 고르기</h3>
+    <div class="icon-grid" id="icon-grid"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 인쇄용 시트 (평소엔 숨김) -->
+<div id="print-root"></div>
+
+<script>
+// =====================================================================
+// 백엔드 주소 (Apps Script가 자동으로 채워줍니다)
+// =====================================================================
+const BACKEND_URL = "<?= backendUrl ?>";
+const DEMO = !BACKEND_URL || BACKEND_URL.indexOf('backendUrl') >= 0 || BACKEND_URL.indexOf('<') >= 0;
+
+// =====================================================================
+// 통신
+// =====================================================================
+async function api(action, payload){
+  if (DEMO) return mockApi(action, payload || {});
+  const res = await fetch(BACKEND_URL, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ action: action, payload: payload || {} })
+  });
+  const data = await res.json();
+  if(!data.ok) throw new Error(data.error || '문제가 생겼어요.');
+  return data;
+}
+
+// =====================================================================
+// 상태
+// =====================================================================
+const state = {
+  teacher:{classCode:'',className:'',password:'',currentRound:1,rounds:[]},
+  student:{classCode:'',className:'',number:'',name:'',openRounds:[],publishedRounds:[],applyRound:0},
+  viewRound:0,   // 배정 탭에서 보고 있는 회차 (0이면 현재 회차)
+  appsRound:0,   // 지원현황 탭에서 보고 있는 회차 (0이면 현재 회차)
+  jobs:[], students:[], applications:[], assignments:[],
+  picks:[null,null,null],
+  dilPick:{},          // studentId -> 성실도
+  iconTarget:null,     // 아이콘 모달이 수정 중인 직업 index
+};
+
+// =====================================================================
+// 아이콘 사전 (키워드 자동 추측) + 선택 목록
+// =====================================================================
+const ICON_KEYWORDS = [
+  {k:['칠판','판서'],i:'ti-blackboard'}, {k:['우유'],i:'ti-bottle'},
+  {k:['급식','식판','배식'],i:'ti-tools-kitchen-2'}, {k:['알림','공지','알림장'],i:'ti-notebook'},
+  {k:['청소','빗자루','바닥'],i:'ti-spray'}, {k:['쓰레기','분리수거','재활용'],i:'ti-recycle'},
+  {k:['책','도서','독서','사서'],i:'ti-books'}, {k:['컴퓨터','pc','노트북','tv','모니터'],i:'ti-device-desktop'},
+  {k:['화분','식물','꽃','물주기'],i:'ti-plant-2'}, {k:['손','위생','세정'],i:'ti-hand-stop'},
+  {k:['전등','불','소등','조명'],i:'ti-bulb'}, {k:['문','출입','복도'],i:'ti-door'},
+  {k:['창문','환기','커튼'],i:'ti-window'}, {k:['음악','노래'],i:'ti-music'},
+  {k:['미술','그림','꾸미기'],i:'ti-palette'}, {k:['체육','운동','공'],i:'ti-ball-basketball'},
+  {k:['모둠','분단','팀'],i:'ti-users-group'}, {k:['도우미','돕'],i:'ti-heart-handshake'},
+  {k:['반장','회장','대표'],i:'ti-crown'}, {k:['출석','체크','확인'],i:'ti-checklist'},
+  {k:['발표','마이크','사회'],i:'ti-microphone'}, {k:['안전','지킴'],i:'ti-shield-check'},
+  {k:['시간','타이머','종'],i:'ti-clock'}, {k:['달력','일정','날짜'],i:'ti-calendar'},
+  {k:['게시','보드','자료'],i:'ti-pin'}, {k:['우편','편지','전달'],i:'ti-mail'},
+  {k:['사물함','정리함','보관'],i:'ti-box'}, {k:['학용품','연필','문구'],i:'ti-pencil'},
+  {k:['정리','정돈'],i:'ti-stack-2'}, {k:['수도','물','세면'],i:'ti-droplet'},
+  {k:['에어컨','냉방','난방','온도'],i:'ti-air-conditioning'}, {k:['칭찬','스티커','상'],i:'ti-star'},
+];
+const DEFAULT_ICON = 'ti-briefcase';
+const PICKER_ICONS = ['ti-briefcase','ti-blackboard','ti-bottle','ti-tools-kitchen-2','ti-notebook','ti-spray',
+  'ti-recycle','ti-trash','ti-books','ti-book','ti-device-desktop','ti-plant-2','ti-plant','ti-hand-stop',
+  'ti-bulb','ti-door','ti-window','ti-music','ti-palette','ti-ball-basketball','ti-ball-football',
+  'ti-users-group','ti-users','ti-heart-handshake','ti-crown','ti-checklist','ti-clipboard-check',
+  'ti-microphone','ti-shield-check','ti-clock','ti-calendar','ti-pin','ti-mail','ti-box','ti-pencil',
+  'ti-stack-2','ti-droplet','ti-air-conditioning','ti-star','ti-heart','ti-flower','ti-paw','ti-sun',
+  'ti-cup','ti-broom','ti-key','ti-flag','ti-bell'];
+
+function guessIcon(name){
+  const n = String(name||'').toLowerCase().replace(/\s/g,'');
+  for(const e of ICON_KEYWORDS){ if(e.k.some(kw=>n.includes(kw))) return e.i; }
+  return DEFAULT_ICON;
+}
+
+// =====================================================================
+// 화면 전환 / 토스트
+// =====================================================================
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  const t=document.getElementById(id); t.classList.add('on');
+  window.scrollTo({top:0,behavior:'instant'});
+}
+let toastT;
+function toast(msg, isErr){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast on'+(isErr?' err':'');
+  clearTimeout(toastT); toastT=setTimeout(()=>el.className='toast',2600);
+}
+function busy(btn, on, label){
+  if(on){ btn.disabled=true; btn.dataset.html=btn.innerHTML; btn.innerHTML='<span class="spin"></span> '+(label||'잠깐만요'); }
+  else { btn.disabled=false; if(btn.dataset.html) btn.innerHTML=btn.dataset.html; }
+}
+function roundLabel(n){ return (Number(n)||1)+'회차'; }
+function statusLabel(s){ return s==='published'?'배정 공개됨':'지원 받는 중'; }
+
+// =====================================================================
+// 선생님: 학급 만들기 / 로그인
+// =====================================================================
+async function doCreateClass(){
+  const name=document.getElementById('c-name').value.trim();
+  const pw=document.getElementById('c-pw').value.trim();
+  if(!name) return toast('학급 이름을 입력해 주세요.',true);
+  if(pw.length<4) return toast('비밀번호는 4자 이상으로 해주세요.',true);
+  const btn=document.getElementById('c-submit'); busy(btn,true,'만드는 중');
+  try{
+    const r=await api('createClass',{className:name,password:pw});
+    state.teacher={classCode:r.classCode,className:r.className,password:pw,currentRound:r.currentRound,rounds:r.rounds||[{round:1,status:'open'}]};
+    document.getElementById('c-code').textContent=r.classCode;
+    document.getElementById('create-form').style.display='none';
+    document.getElementById('create-done').style.display='block';
+  }catch(e){ toast(e.message,true); } finally{ busy(btn,false); }
+}
+function copyCode(){
+  const code=state.teacher.classCode;
+  navigator.clipboard?.writeText(code).then(()=>toast('코드를 복사했어요!')).catch(()=>toast(code));
+}
+function enterMainAfterCreate(){ openTeacherMain(); }
+
+async function doTeacherLogin(){
+  const code=document.getElementById('t-code').value.trim().toUpperCase();
+  const pw=document.getElementById('t-pw').value.trim();
+  if(code.length<6) return toast('학급 코드 6자리를 입력해 주세요.',true);
+  const btn=document.getElementById('t-submit'); busy(btn,true,'확인 중');
+  try{
+    const r=await api('teacherLogin',{classCode:code,password:pw});
+    state.teacher={classCode:code,className:r.className,password:pw,currentRound:r.currentRound,rounds:r.rounds||[]};
+    openTeacherMain();
+  }catch(e){ toast(e.message,true); } finally{ busy(btn,false); }
+}
+function leaveTeacher(){ go('screen-home'); }
+
+// =====================================================================
+// 선생님 메인 진입 + 탭
+// =====================================================================
+async function openTeacherMain(){
+  document.getElementById('m-class-name').textContent=state.teacher.className;
+  document.getElementById('m-code').textContent=state.teacher.classCode;
+  state.viewRound=0;
+  updateTeacherRoundPill();
+  go('screen-teacher-main');
+  switchTab('jobs');
+  await loadJobsEditor();
+}
+function updateTeacherRoundPill(){
+  const pill=document.getElementById('m-month');
+  const rounds=state.teacher.rounds||[];
+  const openN=rounds.filter(r=>r.status==='open').length;
+  const cur=state.teacher.currentRound||1;
+  pill.textContent=roundLabel(cur)+'까지'+(openN?(' · 열림 '+openN+'개'):'');
+  pill.className='pill'+(openN?' brand':'');
+}
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('panel-'+name).classList.add('on');
+  if(name==='students') loadStudentsEditor();
+  if(name==='apps') loadApplications();
+  if(name==='assign') loadAssignmentTab();
+}
+
+// =====================================================================
+// 직업 편집
+// =====================================================================
+function tdata(){ return {classCode:state.teacher.classCode,password:state.teacher.password}; }
+
+async function loadJobsEditor(){
+  try{
+    const r=await api('listJobs',{classCode:state.teacher.classCode});
+    state.jobs=r.jobs||[];
+  }catch(e){ state.jobs=[]; }
+  renderJobsEditor();
+}
+function renderJobsEditor(){
+  const box=document.getElementById('jobs-list');
+  document.getElementById('jobs-count').textContent=state.jobs.length?state.jobs.length+'개':'';
+  if(!state.jobs.length){
+    box.innerHTML='<div class="empty"><div class="ic"><span class="ti ti-briefcase-off"></span></div><p>아직 직업이 없어요.<br>아래에서 추가하거나 예시를 불러오세요.</p></div>';
+    return;
+  }
+  box.innerHTML=state.jobs.map((j,i)=>`
+    <div class="jrow c${i%7}">
+      <div class="jchip" onclick="openIconModal(${i})"><span class="ti ${j.icon||DEFAULT_ICON}"></span></div>
+      <div class="jmid">
+        <input class="jname" value="${esc(j.jobName)}" placeholder="직업 이름"
+          oninput="onJobName(${i},this.value)" onblur="autoIcon(${i})">
+        <input class="jdesc" value="${esc(j.description)}" placeholder="설명 (예: 칠판을 깨끗이 지워요)" maxlength="50"
+          oninput="onJobDesc(${i},this.value)">
+      </div>
+      <div class="stepper" title="정원">
+        <button onclick="bumpCap(${i},-1)">−</button><span class="num">${j.capacity||1}</span><button onclick="bumpCap(${i},1)">+</button>
+      </div>
+      <button class="star-btn ${j.isPopular?'on':''}" title="인기 직업" onclick="togglePop(${i})"><span class="ti ti-star${j.isPopular?'-filled':''}"></span></button>
+      <button class="del-btn" onclick="delJob(${i})"><span class="ti ti-x"></span></button>
+    </div>`).join('');
+}
+function esc(s){ return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function onJobName(i,v){ state.jobs[i].jobName=v; }
+function onJobDesc(i,v){ state.jobs[i].description=v; }
+function autoIcon(i){
+  const j=state.jobs[i];
+  if(!j._iconManual){ j.icon=guessIcon(j.jobName); renderJobsEditor(); }
+}
+function bumpCap(i,d){ const j=state.jobs[i]; j.capacity=Math.max(1,(Number(j.capacity)||1)+d); renderJobsEditor(); }
+function togglePop(i){ state.jobs[i].isPopular=!state.jobs[i].isPopular; renderJobsEditor(); }
+function delJob(i){ state.jobs.splice(i,1); renderJobsEditor(); }
+function addJobRow(){ state.jobs.push({jobName:'',icon:DEFAULT_ICON,capacity:1,isPopular:false,description:''}); renderJobsEditor();
+  setTimeout(()=>{const ins=document.querySelectorAll('.jname');ins[ins.length-1]?.focus();},30); }
+function loadSampleJobs(){
+  const samples=[
+    ['칠판 지킴이',1,true,'쉬는 시간마다 칠판을 깨끗이 지워요'],
+    ['우유 당번',2,false,'우유를 받아와 친구들에게 나눠줘요'],
+    ['화분 정원사',1,false,'교실 화분에 물을 주고 돌봐요'],
+    ['책 정리왕',1,false,'학급문고 책을 가지런히 정리해요'],
+    ['알림 도우미',1,true,'알림장과 가정통신문을 챙겨요'],
+    ['전등 지킴이',1,false,'교실을 비울 때 불을 꺼요'],
+    ['분리수거 대장',2,false,'쓰레기를 종류별로 분리수거해요'],
+    ['모둠 도우미',2,false,'모둠 활동 준비물을 나눠줘요'],
+    ['시간 지킴이',1,false,'수업 시작·끝 시간을 알려줘요'],
+    ['칭찬 스티커 요정',1,true,'친구들의 착한 일에 칭찬 스티커를 붙여줘요']];
+  state.jobs=samples.map(s=>({jobName:s[0],icon:guessIcon(s[0]),capacity:s[1],isPopular:s[2],description:s[3]}));
+  renderJobsEditor(); toast('예시 직업을 불러왔어요. 자유롭게 바꿔보세요!');
+}
+async function saveJobs(){
+  const clean=state.jobs.filter(j=>String(j.jobName||'').trim());
+  if(!clean.length) return toast('직업 이름을 하나 이상 입력해 주세요.',true);
+  const btn=document.getElementById('jobs-save'); busy(btn,true,'저장 중');
+  try{ const r=await api('saveJobs',Object.assign(tdata(),{jobs:clean})); state.jobs=r.jobs; renderJobsEditor(); toast('직업을 저장했어요!'); }
+  catch(e){ toast(e.message,true); } finally{ busy(btn,false); }
+}
+
+// 아이콘 모달
+function openIconModal(i){
+  state.iconTarget=i;
+  const grid=document.getElementById('icon-grid');
+  grid.innerHTML=PICKER_ICONS.map(ic=>`<button onclick="pickIcon('${ic}')"><span class="ti ${ic}"></span></button>`).join('');
+  document.getElementById('icon-modal').classList.add('on');
+}
+function closeIconModal(){ document.getElementById('icon-modal').classList.remove('on'); }
+function pickIcon(ic){
+  const j=state.jobs[state.iconTarget]; if(j){ j.icon=ic; j._iconManual=true; renderJobsEditor(); }
+  closeIconModal();
+}
+
+// =====================================================================
+// 학생 명단 편집
+// =====================================================================
+async function loadStudentsEditor(){
+  try{ const r=await api('listStudents',tdata()); state.students=r.students||[]; }catch(e){ state.students=[]; }
+  if(!state.students.length) state.students=[{number:'',name:''}];
+  renderStudentsEditor();
+}
+function renderStudentsEditor(){
+  const box=document.getElementById('stu-list');
+  const filled=state.students.filter(s=>String(s.name||'').trim()).length;
+  document.getElementById('stu-count').textContent=filled?filled+'명':'';
+  box.innerHTML=state.students.map((s,i)=>`
+    <div class="stu-row">
+      <input class="num" value="${esc(s.number)}" inputmode="numeric" placeholder="번호" oninput="state.students[${i}].number=this.value">
+      <input class="nm" value="${esc(s.name)}" placeholder="이름" oninput="state.students[${i}].name=this.value">
+      <button class="del-btn" onclick="delStu(${i})"><span class="ti ti-x"></span></button>
+    </div>`).join('');
+}
+function addStuRow(){ const last=state.students[state.students.length-1];
+  const n=last&&last.number?String(Number(last.number)+1):''; state.students.push({number:n,name:''}); renderStudentsEditor();
+  setTimeout(()=>{const ins=document.querySelectorAll('.stu-row .nm');ins[ins.length-1]?.focus();},30); }
+function delStu(i){ state.students.splice(i,1); if(!state.students.length)state.students=[{number:'',name:''}]; renderStudentsEditor(); }
+function parsePaste(){
+  const raw=document.getElementById('stu-paste').value.trim(); if(!raw) return;
+  const rows=raw.split(/\n/).map(line=>{
+    const m=line.trim().match(/^(\d+)?[\s.\t)]*(.+)$/);
+    if(!m) return null; return {number:(m[1]||'').trim(),name:(m[2]||'').trim()};
+  }).filter(r=>r&&r.name);
+  if(!rows.length) return toast('읽을 수 있는 줄이 없어요. "번호 이름" 형식으로 넣어주세요.',true);
+  rows.forEach((r,idx)=>{ if(!r.number) r.number=String(idx+1); });
+  state.students=rows; document.getElementById('stu-paste').value=''; renderStudentsEditor();
+  toast(rows.length+'명을 채웠어요!');
+}
+async function saveStudents(){
+  const clean=state.students.filter(s=>String(s.name||'').trim());
+  if(!clean.length) return toast('학생을 한 명 이상 입력해 주세요.',true);
+  const btn=document.getElementById('stu-save'); busy(btn,true,'저장 중');
+  try{ const r=await api('saveStudents',Object.assign(tdata(),{students:clean})); state.students=r.students; renderStudentsEditor(); toast('명단을 저장했어요!'); }
+  catch(e){ toast(e.message,true); } finally{ busy(btn,false); }
+}
+
+// =====================================================================
+// 지원 현황
+// =====================================================================
+async function loadApplications(){
+  const box=document.getElementById('apps-list');
+  box.innerHTML='<div class="empty"><div class="ic"><span class="ti ti-loader"></span></div><p>불러오는 중…</p></div>';
+  try{
+    const round=appsRoundNow();
+    const [ra,rs,rj,rr]=await Promise.all([
+      api('listApplications',Object.assign(tdata(),{round})),
+      api('listStudents',tdata()),
+      api('listJobs',{classCode:state.teacher.classCode}),
+      api('getRounds',tdata())
+    ]);
+    state.applications=ra.applications||[]; state.students=rs.students||[]; state.jobs=rj.jobs||[];
+    state.teacher.currentRound=rr.currentRound; state.teacher.rounds=rr.rounds||[];
+    state.appsRound=ra.round;
+    updateTeacherRoundPill();
+    renderApplications();
+  }catch(e){ box.innerHTML='<div class="empty"><p>'+esc(e.message)+'</p></div>'; }
+}
+function appsRoundNow(){ return state.appsRound>0?state.appsRound:(state.teacher.currentRound||1); }
+function setAppsRound(rn){ state.appsRound=rn; loadApplications(); }
+function roundPillsHtml(active,onclickName){
+  const rounds=state.teacher.rounds||[];
+  if(rounds.length<=1) return '';
+  return '<div class="round-pills">'+rounds.map(r=>{
+    const lab=roundLabel(r.round)+(r.status==='published'?' ✓':'');
+    return `<button class="rpill ${r.round===active?'on':''}" onclick="${onclickName}(${r.round})">${esc(lab)}</button>`;
+  }).join('')+'</div>';
+}
+function jobName(id){ const j=state.jobs.find(x=>x.jobId===id); return j?j.jobName:'—'; }
+function dilOf(studentId){
+  const s=state.students.find(x=>x.studentId===studentId);
+  return s?(s.diligence||''):'';
+}
+function renderApplications(){
+  const box=document.getElementById('apps-list');
+  const applied=new Set(state.applications.map(a=>a.studentId));
+  const notYet=state.students.filter(s=>!applied.has(s.studentId));
+  document.getElementById('apps-count').textContent=state.applications.length+' / '+state.students.length+'명 신청';
+  let html=roundPillsHtml(appsRoundNow(),'setAppsRound');
+  html+=`<p class="hint" style="margin:0 0 12px">${roundLabel(appsRoundNow())} 지원 현황이에요.</p>`;
+  if(state.applications.length){
+    html+=`<p class="hint" style="margin:0 0 12px">학생 이름 옆에서 <b>성실도</b>를 정해주세요. 지난 활동을 잘한 학생일수록 1지망에 배정될 확률이 높아져요.</p>`;
+    html+=state.applications.map((a,idx)=>{
+      const d=dilOf(a.studentId);
+      return `
+      <div class="list-row" style="flex-wrap:wrap">
+        <div class="who"><div class="n">${esc(a.studentName)}</div><div class="num2">${esc(a.number)}번</div></div>
+        <div class="choices">
+          ${a.choice1?`<span class="ch"><b>1</b>${esc(jobName(a.choice1))}</span>`:''}
+          ${a.choice2?`<span class="ch"><b>2</b>${esc(jobName(a.choice2))}</span>`:''}
+          ${a.choice3?`<span class="ch"><b>3</b>${esc(jobName(a.choice3))}</span>`:''}
+        </div>
+        <div class="dil">
+          <button class="good ${d==='잘함'?'on':''}" onclick="setAppDil(${idx},'잘함')">잘함</button>
+          <button class="mid ${d==='보통'?'on':''}" onclick="setAppDil(${idx},'보통')">보통</button>
+          <button class="low ${d==='아쉬움'?'on':''}" onclick="setAppDil(${idx},'아쉬움')">아쉬움</button>
+        </div>
+        <button class="del-btn" onclick="delApp(${idx})"><span class="ti ti-trash"></span></button>
+        ${a.reason?`<div class="reason">💬 ${esc(a.reason)}</div>`:''}
+      </div>`;}).join('');
+  } else {
+    html+='<div class="empty"><div class="ic"><span class="ti ti-mail-off"></span></div><p>이 회차에 신청한 학생이 아직 없어요.</p></div>';
+  }
+  if(notYet.length){
+    html+=`<p class="hint mt">아직 신청 안 함: ${notYet.map(s=>esc(s.name)).join(', ')}</p>`;
+  }
+  box.innerHTML=html;
+}
+async function setAppDil(idx,v){
+  const a=state.applications[idx]; if(!a) return;
+  const studentId=a.studentId;
+  const s=state.students.find(x=>x.studentId===studentId);
+  if(s) s.diligence=v;       // 화면 즉시 반영
+  renderApplications();
+  try{ await api('setStudentDiligence',Object.assign(tdata(),{items:[{studentId,diligence:v}]})); }
+  catch(e){ toast(e.message,true); }
+}
+async function delApp(idx){
+  const a=state.applications[idx]; if(!a) return;
+  if(!confirm(a.studentName+' 학생의 지원을 삭제할까요?')) return;
+  try{ await api('deleteApplication',Object.assign(tdata(),{studentId:a.studentId,round:appsRoundNow()})); toast('지원을 삭제했어요.'); loadApplications(); }
+  catch(e){ toast(e.message,true); }
+}
+
+// =====================================================================
+// 배정 (회차 기반)
+// =====================================================================
+function targetRound(){ return state.viewRound>0 ? state.viewRound : (state.teacher.currentRound||1); }
+
+async function loadAssignmentTab(){
+  try{
+    const rj=await api('listJobs',{classCode:state.teacher.classCode}); state.jobs=rj.jobs||[];
+    const r=await api('listAssignments',Object.assign(tdata(),{round:targetRound()}));
+    state.assignments=r.assignments||[];
+    state.teacher.currentRound=r.currentRound;
+    state.teacher.rounds=r.rounds||[];
+    state.viewRound=r.round;
+    updateTeacherRoundPill();
+    renderAssignmentTab(r);
+  }catch(e){ state.assignments=[]; renderAssignmentTab({round:targetRound(),currentRound:state.teacher.currentRound,roundStatus:'open',published:false}); }
+}
+function viewRoundDelta(d){
+  const next=Math.min(state.teacher.currentRound, Math.max(1, targetRound()+d));
+  state.viewRound=next; loadAssignmentTab();
+}
+function renderAssignmentTab(meta){
+  const isOpen = meta.roundStatus==='open';
+  const isPub  = meta.roundStatus==='published';
+
+  document.getElementById('round-now').textContent=roundLabel(meta.round);
+  document.getElementById('round-prev').disabled = meta.round<=1;
+  document.getElementById('round-next').disabled = meta.round>=meta.currentRound;
+
+  // 배너 (해당 회차의 상태)
+  const banner=document.getElementById('round-banner');
+  if(isPub){ banner.className='round-banner published'; banner.innerHTML='<span class="ti ti-eye-check"></span> '+roundLabel(meta.round)+' · 배정 공개됨 — 학생이 직업을 볼 수 있어요'; }
+  else { banner.className='round-banner open'; banner.innerHTML='<span class="ti ti-door-enter"></span> '+roundLabel(meta.round)+' · 지원 받는 중 — 배정을 실행하고, 마음에 들면 마감해 공개하세요'; }
+
+  // 배정 실행 버튼 (열린 회차일 때만)
+  const runBtn=document.getElementById('run-assign');
+  runBtn.style.display = isOpen ? 'flex' : 'none';
+  runBtn.innerHTML = state.assignments.length
+    ? '<span class="ti ti-refresh"></span> 다시 배정하기'
+    : '<span class="ti ti-wand"></span> 자동 배정 실행하기';
+
+  // 결과 + 인쇄
+  const box=document.getElementById('assign-result');
+  const printBtn=document.getElementById('print-btn');
+  if(!state.assignments.length){
+    box.innerHTML = isOpen
+      ? '<div class="empty"><div class="ic"><span class="ti ti-wand"></span></div><p>아직 배정 전이에요.<br>위 버튼으로 자동 배정을 실행하세요.</p></div>'
+      : '<div class="empty"><div class="ic"><span class="ti ti-clipboard-off"></span></div><p>이 회차에는 배정 기록이 없어요.</p></div>';
+    printBtn.style.display='none';
+  } else {
+    const lvName={1:'1지망',2:'2지망',3:'3지망',0:'배정'};
+    box.innerHTML=state.assignments.slice().sort((a,b)=>(Number(a.number)||0)-(Number(b.number)||0)).map(a=>`
+      <div class="list-row" style="flex-wrap:wrap">
+        <span class="badge-lv lv${a.choiceLevel}" title="${lvName[a.choiceLevel]}">${a.choiceLevel||'•'}</span>
+        <div class="who"><div class="n">${esc(a.studentName)}</div><div class="num2">${esc(a.number)}번</div></div>
+        <div class="choices"><span class="ch" style="background:var(--brand-soft);border-color:var(--brand-soft);color:var(--brand-deep)"><b>${lvName[a.choiceLevel]}</b>${esc(a.jobName)}</span></div>
+      </div>`).join('');
+    printBtn.style.display='flex';
+  }
+
+  // 단계별 액션 버튼
+  const act=document.getElementById('assign-actions');
+  let html='';
+  if(isOpen && state.assignments.length){
+    html+=`<p class="hint">학생에게 보여주기 전, 결과를 확인하고 필요하면 다시 배정할 수 있어요.</p>
+      <button class="btn btn-mint btn-block btn-lg mt-s" onclick="publishRound()"><span class="ti ti-eye-check"></span> ${roundLabel(meta.round)} 마감하고 공개</button>`;
+  } else if(isPub){
+    html+=`<button class="btn btn-ghost btn-block" onclick="reopenRound()"><span class="ti ti-arrow-back-up"></span> ${roundLabel(meta.round)} 공개 취소</button>`;
+  }
+  // 항상: 새 회차 열기 (미리 여러 개 개방 가능)
+  html+=`<button class="btn btn-primary btn-block mt-s" onclick="openNextRound()"><span class="ti ti-plus"></span> 새 회차 열기 <span class="muted" style="font-weight:600">(미리 여러 개 가능)</span></button>`;
+  act.style.display='block'; act.innerHTML=html;
+}
+async function runAssign(){
+  const btn=document.getElementById('run-assign'); busy(btn,true,'배정 중');
+  try{
+    const r=await api('runAssignment',Object.assign(tdata(),{round:targetRound()}));
+    if(r.leftover>0) toast('자리보다 학생이 '+r.leftover+'명 많아요. 직업 정원을 늘려보세요.',true);
+    else toast('배정 완료! 🎉 결과를 확인하고 공개하세요.');
+    await loadAssignmentTab();
+  }catch(e){ toast(e.message,true); } finally{ busy(btn,false); }
+}
+async function publishRound(){
+  const rn=targetRound();
+  if(!confirm(roundLabel(rn)+' 배정을 마감하고 학생에게 공개할까요?\n공개하면 학생이 자기 직업을 볼 수 있어요.')) return;
+  try{ await api('publishRound',Object.assign(tdata(),{round:rn})); toast('공개했어요! 이제 학생이 직업을 볼 수 있어요. 🎉'); state.viewRound=rn; loadAssignmentTab(); }
+  catch(e){ toast(e.message,true); }
+}
+async function reopenRound(){
+  const rn=targetRound();
+  try{ await api('reopenRound',Object.assign(tdata(),{round:rn})); toast('공개를 취소했어요. 다시 배정할 수 있어요.'); state.viewRound=rn; loadAssignmentTab(); }
+  catch(e){ toast(e.message,true); }
+}
+async function openNextRound(){
+  if(!confirm('새 회차를 열까요?\n학생들이 그 회차에도 지원할 수 있어요. (여러 개 미리 열 수 있어요)')) return;
+  try{ const r=await api('openNextRound',tdata()); state.teacher.currentRound=r.currentRound; state.teacher.rounds=r.rounds||[]; toast(roundLabel(r.currentRound)+'를 열었어요!'); state.viewRound=r.currentRound; loadAssignmentTab(); }
+  catch(e){ toast(e.message,true); }
+}
+
+// 게시용 인쇄 시트 만들기
+function buildPrintSheet(){
+  const root=document.getElementById('print-root');
+  const rows=state.assignments.slice().sort((a,b)=>(Number(a.number)||0)-(Number(b.number)||0));
+  const cards=rows.map(a=>{
+    const idx=state.jobs.findIndex(x=>x.jobId===a.jobId);
+    const j=state.jobs[idx]||{};
+    const tint=['#FFE3DE','#FFF0D2','#DBF3E6','#D6EFF7','#E2EBFD','#ECE4FB','#FFE3EF'][(idx>=0?idx:0)%7];
+    const fg=['#E1503F','#C77F1B','#2E9E6B','#2592AE','#3D6FD6','#7D4FD0','#D85C8B'][(idx>=0?idx:0)%7];
+    return `<div class="pcard">
+      <div class="pchip" style="background:${tint};color:${fg}"><span class="ti ${j.icon||DEFAULT_ICON}"></span></div>
+      <div class="pjob">${esc(a.jobName)}</div>
+      <div class="pstu"><span class="pnum">${esc(a.number)}번</span>${esc(a.studentName)}</div>
+    </div>`;
+  }).join('');
+  root.innerHTML=`
+    <div class="print-head">
+      <p class="pt">${esc(state.teacher.className)} · 1인 1역</p>
+      <p class="ps">${roundLabel(targetRound())} · 모두 ${rows.length}명</p>
+    </div>
+    <div class="print-grid">${cards}</div>`;
+}
+function printAssignments(){
+  if(!state.assignments.length) return toast('인쇄할 배정 결과가 없어요.',true);
+  buildPrintSheet();
+  setTimeout(()=>window.print(),250);
+}
+
+
+// =====================================================================
+// 학생 흐름
+// =====================================================================
+async function doStudentCode(){
+  const code=document.getElementById('s-code').value.trim().toUpperCase();
+  if(code.length<6) return toast('코드 6자리를 입력해 주세요.',true);
+  const btn=document.getElementById('s-code-submit'); busy(btn,true,'확인 중');
+  try{
+    const r=await api('getClassInfo',{classCode:code});
+    state.student.classCode=code; state.student.className=r.className; state.student.currentRound=r.currentRound;
+    state.student.openRounds=r.openRounds||[]; state.student.publishedRounds=r.publishedRounds||[];
+    document.getElementById('s-class-name').textContent=r.className;
+    go('screen-student-id');
+  }catch(e){ toast(e.message,true); } finally{ busy(btn,false); }
+}
+async function doStudentId(){
+  const num=document.getElementById('s-num').value.trim();
+  const name=document.getElementById('s-name').value.trim();
+  if(!name) return toast('이름을 입력해 주세요.',true);
+  state.student.number=num; state.student.name=name;
+  const btn=document.getElementById('s-id-submit'); busy(btn,true,'확인 중');
+  try{
+    const rj=await api('listJobs',{classCode:state.student.classCode}); state.jobs=rj.jobs||[];
+    await loadStudentRounds();
+    go('screen-student-round');
+  }catch(e){ toast(e.message,true); } finally{ busy(btn,false); }
+}
+// 학생의 회차 목록(열린 회차 + 내 공개 결과) 새로고침
+async function loadStudentRounds(){
+  const info=await api('getClassInfo',{classCode:state.student.classCode});
+  state.student.openRounds=info.openRounds||[]; state.student.publishedRounds=info.publishedRounds||[];
+  state.student.currentRound=info.currentRound;
+  let results=[];
+  try{ const rr=await api('getMyResults',{classCode:state.student.classCode,number:state.student.number,name:state.student.name}); results=rr.results||[]; }catch(_){}
+  state.student.myResults=results;
+  renderRoundChooser();
+}
+function renderRoundChooser(){
+  document.getElementById('s-round-who').textContent=state.student.name+' 어린이';
+  const open=(state.student.openRounds||[]).slice().sort((a,b)=>a-b);
+  const results=state.student.myResults||[];
+  let html='';
+  if(open.length){
+    html+='<p class="lab" style="font-weight:700;margin-bottom:2px">지원할 회차</p>';
+    html+=open.map(rn=>`<button class="btn btn-mint btn-block btn-lg mt-s" onclick="chooseApplyRound(${rn})"><span class="ti ti-pencil"></span> ${roundLabel(rn)} 직업 신청하기</button>`).join('');
+  } else {
+    html+='<div class="empty"><div class="ic"><span class="ti ti-door-off"></span></div><p>지금은 열린 회차가 없어요.<br>선생님이 회차를 열면 신청할 수 있어요.</p></div>';
+  }
+  if(results.length){
+    html+='<p class="lab" style="font-weight:700;margin:18px 0 2px">공개된 내 직업</p>';
+    html+=results.map(r=>`<button class="btn btn-ghost btn-block mt-s" onclick="showResultRound(${r.round})"><span class="ti ti-eye"></span> ${roundLabel(r.round)} 내 직업 보기</button>`).join('');
+  }
+  document.getElementById('s-round-list').innerHTML=html;
+}
+async function chooseApplyRound(rn){
+  state.student.applyRound=rn;
+  state.picks=[null,null,null];
+  const reason=document.getElementById('s-reason'); if(reason) reason.value='';
+  if(!state.jobs.length){ toast('아직 직업이 등록되지 않았어요. 선생님께 물어보세요.',true); return; }
+  try{
+    const my=await api('getMyApplication',{classCode:state.student.classCode,number:state.student.number,name:state.student.name,round:rn});
+    if(my.application){ state.picks=[my.application.choice1||null,my.application.choice2||null,my.application.choice3||null];
+      if(reason) reason.value=my.application.reason||''; }
+  }catch(_){}
+  document.getElementById('s-apply-who').textContent=state.student.name+' 어린이';
+  document.getElementById('s-apply-month').textContent=roundLabel(rn);
+  renderStudentJobs();
+  go('screen-student-apply');
+}
+function renderStudentJobs(){
+  const grid=document.getElementById('s-job-grid');
+  grid.innerHTML=state.jobs.map((j,i)=>{
+    const pick=state.picks.indexOf(j.jobId);
+    return `<div class="job c${i%7} ${pick>=0?'picked':''}" onclick="togglePick('${j.jobId}')">
+      ${pick>=0?`<div class="pin">${pick+1}</div>`:''}
+      ${j.isPopular?'<span class="pop"><span class="ti ti-star-filled"></span></span>':''}
+      <div class="chip"><span class="ti ${j.icon||DEFAULT_ICON}"></span></div>
+      <div class="jn">${esc(j.jobName)}</div>
+      ${j.description?`<div class="jd">${esc(j.description)}</div>`:''}
+      <div class="cap">${j.capacity>1?j.capacity+'명 모집':'1명 모집'}</div>
+    </div>`;
+  }).join('');
+  for(let s=0;s<3;s++){
+    const slot=document.getElementById('slot-'+s);
+    const id=state.picks[s];
+    if(id){ slot.classList.add('filled'); slot.querySelector('.sv').textContent=jobName(id); }
+    else { slot.classList.remove('filled'); slot.querySelector('.sv').textContent='아직 없어요'; }
+  }
+}
+function togglePick(id){
+  const at=state.picks.indexOf(id);
+  if(at>=0){ state.picks.splice(at,1); state.picks.push(null); state.picks=state.picks.slice(0,3); }
+  else {
+    const empty=state.picks.indexOf(null);
+    if(empty<0) return toast('1·2·3지망을 다 골랐어요. 바꾸려면 카드를 다시 눌러 빼주세요.',true);
+    state.picks[empty]=id;
+  }
+  renderStudentJobs();
+}
+async function doSubmitApplication(){
+  if(!state.picks[0]) return toast('적어도 1지망은 골라주세요!',true);
+  const btn=document.getElementById('s-apply-submit'); busy(btn,true,'신청 중');
+  try{
+    await api('submitApplication',{
+      classCode:state.student.classCode, number:state.student.number, name:state.student.name,
+      round:state.student.applyRound,
+      choice1:state.picks[0]||'', choice2:state.picks[1]||'', choice3:state.picks[2]||'',
+      reason:document.getElementById('s-reason').value.trim()
+    });
+    document.getElementById('s-result').style.display='none';
+    document.getElementById('s-done-title').textContent='신청 완료! 🎉';
+    document.getElementById('s-done-msg').textContent=roundLabel(state.student.applyRound)+' 신청을 받았어요. 선생님이 마감하면 결과를 볼 수 있어요.';
+    go('screen-student-done');
+  }catch(e){ toast(e.message,true); } finally{ busy(btn,false); }
+}
+async function showResultRound(rn){
+  try{
+    const r=await api('getMyAssignment',{classCode:state.student.classCode,number:state.student.number,name:state.student.name,round:rn});
+    const box=document.getElementById('s-result');
+    document.getElementById('s-done-title').textContent='내 직업 🎉';
+    if(r.assignment){
+      const a=r.assignment; const j=state.jobs.find(x=>x.jobId===a.jobId)||{};
+      const idx=state.jobs.findIndex(x=>x.jobId===a.jobId);
+      box.className='result-card c'+((idx>=0?idx:0)%7);
+      box.style.display='block';
+      box.innerHTML=`<div class="big-chip"><span class="ti ${j.icon||DEFAULT_ICON}"></span></div>
+        <p class="sub" style="margin:0">${roundLabel(rn)} 나의 직업은</p>
+        <h1 class="display" style="font-size:30px;margin:6px 0 2px">${esc(a.jobName)}</h1>
+        <p class="sub" style="margin:0">맡은 일 잘 부탁해요! 💪</p>`;
+      document.getElementById('s-done-msg').textContent='직업이 정해졌어요!';
+    } else {
+      box.style.display='none';
+      document.getElementById('s-done-msg').textContent='아직 이 회차 결과가 없어요.';
+    }
+    go('screen-student-done');
+  }catch(e){ toast(e.message,true); }
+}
+async function backToRounds(){
+  try{ await loadStudentRounds(); go('screen-student-round'); }
+  catch(e){ toast(e.message,true); }
+}
+
+// 코드/이름 입력 시 자동 대문자 + 엔터 제출
+document.getElementById('s-code').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase());
+document.getElementById('t-code').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase());
+
+// =====================================================================
+// 데모(미리보기) 모드 — 배포 전에도 화면을 둘러볼 수 있게
+// =====================================================================
+// 백엔드 sameNumber_와 동일: "1"과 "01"을 같은 번호로 취급
+function sameNum(a,b){
+  const x=String(a==null?'':a).trim(), y=String(b==null?'':b).trim();
+  if(x===y) return true;
+  if(x===''||y==='') return false;
+  const nx=Number(x), ny=Number(y);
+  return !isNaN(nx)&&!isNaN(ny)&&nx===ny;
+}
+function mockApi(action,p){
+  const db=mockApi._db||(mockApi._db=seedDemo());
+  const wait=v=>new Promise(res=>setTimeout(()=>res(v),180));
+  const cls=db.cls;
+  const ok=o=>Object.assign({ok:true},o);
+  const rounds=()=>Object.keys(cls.status).map(k=>({round:Number(k),status:cls.status[k]})).sort((a,b)=>a.round-b.round);
+  const openR=()=>rounds().filter(r=>r.status==='open').map(r=>r.round);
+  const pubR=()=>rounds().filter(r=>r.status==='published').map(r=>r.round);
+  const R=()=>Number(p.round)||cls.currentRound;
+  switch(action){
+    case 'createClass': cls.className=p.className; cls.password=p.password; return wait(ok({classCode:cls.classCode,className:cls.className,currentRound:cls.currentRound,rounds:rounds()}));
+    case 'teacherLogin': return wait(ok({className:cls.className,currentRound:cls.currentRound,rounds:rounds()}));
+    case 'getRounds': return wait(ok({currentRound:cls.currentRound,rounds:rounds()}));
+    case 'getClassInfo': return wait(ok({className:cls.className,currentRound:cls.currentRound,openRounds:openR(),publishedRounds:pubR()}));
+    case 'listJobs': return wait(ok({jobs:db.jobs}));
+    case 'saveJobs': db.jobs=p.jobs.map((j,i)=>Object.assign({jobId:j.jobId||'job_'+i+'_'+Math.random().toString(36).slice(2,6)},j)); return wait(ok({jobs:db.jobs}));
+    case 'listStudents': return wait(ok({students:db.students}));
+    case 'saveStudents': db.students=p.students.map(s=>{const id='stu_'+s.number+'_'+s.name;const old=db.students.find(x=>x.studentId===id);return {studentId:id,number:String(s.number),name:s.name,diligence:(s.diligence||(old&&old.diligence)||'')};}); return wait(ok({students:db.students}));
+    case 'setDiligence':
+    case 'setStudentDiligence': p.items.forEach(it=>{const s=db.students.find(s=>s.studentId===it.studentId);if(s)s.diligence=it.diligence;}); return wait(ok({students:db.students}));
+    case 'submitApplication':{
+      const round=R();
+      if(cls.status[round]!=='open') return wait(Promise.reject(new Error('지금은 그 회차에 신청할 수 없어요. 열려 있는 회차를 골라 주세요.')));
+      const me=db.students.find(s=>sameNum(s.number,p.number)&&s.name===p.name);
+      if(!me) return wait(Promise.reject(new Error('명단에서 찾을 수 없어요. 번호와 이름을 확인해 주세요.')));
+      db.apps=db.apps.filter(a=>!(a.studentId===me.studentId&&a.round===round));
+      db.apps.push({classCode:cls.classCode,round:round,studentId:me.studentId,number:String(p.number),studentName:p.name,choice1:p.choice1,choice2:p.choice2,choice3:p.choice3,reason:p.reason});
+      return wait(ok({}));
+    }
+    case 'getMyApplication':{ const round=R(); const a=db.apps.find(a=>a.round===round&&sameNum(a.number,p.number)&&a.studentName===p.name); return wait(ok({application:a||null})); }
+    case 'listApplications':{ const round=R(); return wait(ok({round:round,applications:db.apps.filter(a=>a.round===round)})); }
+    case 'deleteApplication':{ const round=R(); db.apps=db.apps.filter(a=>!(a.studentId===p.studentId&&a.round===round)); return wait(ok({})); }
+    case 'runAssignment':{
+      const round=R();
+      if(cls.status[round]!=='open') return wait(Promise.reject(new Error('지금은 배정을 실행할 수 없어요.')));
+      db.assigns=db.assigns.filter(a=>a.round!==round).concat(mockAssign(db,round));
+      return wait(ok({round:round,assignments:db.assigns.filter(a=>a.round===round),leftover:Math.max(0,db.students.length-db.jobs.reduce((n,j)=>n+(j.capacity||1),0))}));
+    }
+    case 'listAssignments':{ const round=R(); const st=cls.status[round]||'open'; return wait(ok({round:round,currentRound:cls.currentRound,roundStatus:st,published:st==='published',rounds:rounds(),assignments:db.assigns.filter(a=>a.round===round)})); }
+    case 'getMyAssignment':{ const round=R(); if(cls.status[round]!=='published') return wait(ok({assignment:null,published:false,round:round})); const a=db.assigns.find(a=>a.round===round&&sameNum(a.number,p.number)&&a.studentName===p.name); return wait(ok({assignment:a||null,published:true,round:round})); }
+    case 'getMyResults':{ const pub={}; pubR().forEach(r=>pub[r]=true); const mine=db.assigns.filter(a=>pub[a.round]&&sameNum(a.number,p.number)&&a.studentName===p.name).map(a=>({round:a.round,jobName:a.jobName,choiceLevel:a.choiceLevel})).sort((x,y)=>y.round-x.round); return wait(ok({results:mine,openRounds:openR()})); }
+    case 'openNextRound': cls.currentRound+=1; cls.status[cls.currentRound]='open'; return wait(ok({currentRound:cls.currentRound,rounds:rounds()}));
+    case 'publishRound':{ const round=R(); const has=db.assigns.some(a=>a.round===round); if(!has) return wait(Promise.reject(new Error('먼저 자동 배정을 실행해 주세요.'))); cls.status[round]='published'; return wait(ok({round:round,rounds:rounds()})); }
+    case 'reopenRound':{ const round=R(); cls.status[round]='open'; return wait(ok({round:round,rounds:rounds()})); }
+    default: return wait(Promise.reject(new Error('데모에서 지원하지 않는 동작이에요.')));
+  }
+}
+function seedDemo(){
+  const jobNames=[['칠판 지킴이',1,true,'쉬는 시간마다 칠판을 깨끗이 지워요'],['우유 당번',2,false,'우유를 받아와 친구들에게 나눠줘요'],
+    ['화분 정원사',1,false,'교실 화분에 물을 주고 돌봐요'],['책 정리왕',1,false,'학급문고 책을 가지런히 정리해요'],
+    ['알림 도우미',1,true,'알림장과 가정통신문을 챙겨요'],['전등 지킴이',1,false,'교실을 비울 때 불을 꺼요'],
+    ['분리수거 대장',2,false,'쓰레기를 종류별로 분리수거해요'],['칭찬 요정',1,true,'친구들의 착한 일에 칭찬 스티커를 붙여줘요']];
+  const jobs=jobNames.map((s,i)=>({jobId:'job_'+i,jobName:s[0],icon:guessIcon(s[0]),capacity:s[1],isPopular:s[2],description:s[3]}));
+  const names=['김하늘','이바다','박송이','최여름','정겨울','한가람','오나무','윤보라'];
+  const students=names.map((n,i)=>({studentId:'stu_'+(i+1)+'_'+n,number:String(i+1),name:n,diligence:''}));
+  return {cls:{classCode:'DEMO24',className:'데모 3학년 1반',password:'1234',currentRound:1,status:{1:'open'}},jobs:jobs,students:students,apps:[],assigns:[]};
+}
+function mockAssign(db,round){
+  const cap={}; db.jobs.forEach(j=>cap[j.jobId]=j.capacity||1);
+  const dilPts={'잘함':8,'보통':4,'아쉬움':0};
+  const dilOf={}; db.students.forEach(s=>{dilOf[s.studentId]=(s.diligence in dilPts)?dilPts[s.diligence]:4;});
+  const score=a=>dilOf[a.studentId]+(String(a.reason||'').trim().length>=5?2:0)+Math.random()*4;
+  const roundApps=db.apps.filter(a=>a.round===round);
+  const assigned={}; const out=[];
+  const appBy={}; roundApps.forEach(a=>appBy[a.studentId]=a);
+  [['choice1',1],['choice2',2],['choice3',3]].forEach(([f,lv])=>{
+    const byJob={};
+    roundApps.forEach(a=>{ if(assigned[a.studentId])return; const jid=a[f]; if(!jid||cap[jid]<=0)return; (byJob[jid]=byJob[jid]||[]).push(a); });
+    Object.keys(byJob).forEach(jid=>{
+      const arr=byJob[jid].sort((x,y)=>score(y)-score(x)).slice(0,cap[jid]);
+      arr.forEach(a=>{ assigned[a.studentId]=jid; cap[jid]--; const j=db.jobs.find(x=>x.jobId===jid);
+        out.push({classCode:db.cls.classCode,round:round,studentId:a.studentId,number:a.number,studentName:a.studentName,jobId:jid,jobName:j.jobName,choiceLevel:lv,diligence:''}); });
+    });
+  });
+  const left=db.students.filter(s=>!assigned[s.studentId]);
+  const slots=[]; db.jobs.forEach(j=>{for(let i=0;i<cap[j.jobId];i++)slots.push(j);});
+  left.forEach((s,i)=>{ const j=slots[i]; if(!j)return; const a=appBy[s.studentId];
+    out.push({classCode:db.cls.classCode,round:round,studentId:s.studentId,number:s.number,studentName:(a&&a.studentName)||s.name,jobId:j.jobId,jobName:j.jobName,choiceLevel:0,diligence:''}); });
+  return out;
+}
+
+// 데모 안내 배너
+if(DEMO){
+  window.addEventListener('DOMContentLoaded',()=>{
+    const b=document.createElement('div');
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:90;background:#3B3530;color:#fff;text-align:center;padding:7px 12px;font-size:12.5px;font-weight:600';
+    b.innerHTML='👀 미리보기(데모) 모드예요 · 학생 코드는 아무거나 입력하면 돼요 · 실제 사용은 배포 후 가능';
+    document.body.appendChild(b);
+    document.querySelectorAll('.wrap').forEach(w=>w.style.paddingTop='40px');
+  });
+}
+</script>

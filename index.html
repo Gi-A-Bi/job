@@ -1,0 +1,2131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>우리 반 직업 배정 시스템</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAF7F2;
+    --paper: #FFFFFF;
+    --ink: #2D2A26;
+    --muted: #7A7268;
+    --line: #E8E2D6;
+    --accent: #C97B5A;
+    --accent-dark: #A85F40;
+    --soft: #F4EDE0;
+    --green: #5C8A5B;
+    --blue: #4A6FA5;
+    --yellow: #E8B84E;
+    --red: #C25450;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle at 20% 30%, rgba(201, 123, 90, 0.04) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 70%, rgba(92, 138, 91, 0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  h1 {
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 32px;
+    margin: 0 0 8px;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0;
+  }
+  .mode-switch {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 24px 0 32px;
+    background: var(--paper);
+    padding: 6px;
+    border-radius: 999px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid var(--line);
+  }
+  .mode-btn {
+    padding: 10px 24px;
+    border: none;
+    background: transparent;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+  .mode-btn.active {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .card {
+    background: var(--paper);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 20px;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card h2::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  input[type="text"], input[type="number"], input[type="password"], select, textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--ink);
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  .row { display: grid; gap: 12px; margin-bottom: 14px; }
+  .row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .btn {
+    padding: 11px 22px;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover { background: var(--soft); }
+  .btn-danger {
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--line);
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-family: inherit;
+  }
+  .btn-danger:hover { background: #FDF0EF; }
+  .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .job-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .job-chip {
+    background: var(--soft);
+    padding: 10px 14px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+  .job-chip .cap {
+    background: var(--paper);
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .applications-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+  .applications-table th {
+    text-align: left;
+    padding: 10px 12px;
+    background: var(--soft);
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 12px;
+  }
+  .applications-table th:first-child { border-radius: 8px 0 0 8px; }
+  .applications-table th:last-child { border-radius: 0 8px 8px 0; }
+  .applications-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .badge-1 { background: #FCE9E0; color: var(--accent-dark); }
+  .badge-2 { background: #E8F0E5; color: var(--green); }
+  .badge-3 { background: #E5EAF3; color: var(--blue); }
+  .badge-none { background: #F0EDE5; color: var(--muted); }
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 12px;
+  }
+  .result-job {
+    background: var(--soft);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .result-job h4 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-family: 'Gowun Dodum', sans-serif;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .result-job h4 .count {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .student-pill {
+    display: inline-block;
+    background: var(--paper);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    margin: 3px 4px 3px 0;
+  }
+  .student-pill.choice-1 { border: 1px solid var(--accent); }
+  .student-pill.choice-2 { border: 1px solid var(--green); }
+  .student-pill.choice-3 { border: 1px solid var(--blue); }
+  .student-pill.choice-fill { background: #F0EDE5; color: var(--muted); }
+  .student-pill.me { background: #FCE9E0; font-weight: 600; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    background: var(--soft);
+    padding: 14px 16px;
+    border-radius: 10px;
+  }
+  .stat-label { font-size: 11px; color: var(--muted); }
+  .stat-value { font-size: 22px; font-weight: 600; font-family: 'Gowun Dodum', sans-serif; margin-top: 4px; }
+  .empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .hidden { display: none !important; }
+  .alert {
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #FDF5E8;
+    border-left: 3px solid var(--yellow);
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+  .alert.success {
+    background: #EDF5EC;
+    border-left-color: var(--green);
+  }
+  .alert.info {
+    background: #EAF0F8;
+    border-left-color: var(--blue);
+  }
+  .alert.danger {
+    background: #FDF0EF;
+    border-left-color: var(--red);
+  }
+  .note {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 4px;
+  }
+  .tag {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 10px;
+    margin-left: 4px;
+  }
+  .tag.experienced { background: #FCE9E0; color: var(--accent-dark); }
+  .reason-cell { max-width: 260px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+  .progress-bar {
+    height: 6px;
+    background: var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--green);
+    transition: width 0.3s;
+  }
+  details.config {
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--soft);
+    border-radius: 10px;
+  }
+  details.config summary {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(45, 42, 38, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .modal {
+    background: var(--paper);
+    border-radius: var(--radius);
+    padding: 28px;
+    max-width: 460px;
+    width: 100%;
+    border: 1px solid var(--line);
+    margin: auto;
+  }
+  .modal h2 { font-family: 'Gowun Dodum', sans-serif; margin: 0 0 8px; font-size: 20px; }
+  .entry-choice {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .entry-choice:hover { border-color: var(--accent); background: #FCF3EC; }
+  .entry-choice .ec-title { font-size: 15px; font-weight: 600; }
+  .entry-choice .ec-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .code-badge {
+    display: inline-block;
+    font-family: 'Courier New', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    background: var(--soft);
+    border: 1px dashed var(--accent);
+    border-radius: 10px;
+    padding: 8px 16px 8px 22px;
+    color: var(--accent-dark);
+  }
+  .sync-status {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .diligence-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+  .diligence-table th {
+    text-align: left;
+    padding: 10px 12px;
+    background: var(--soft);
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 12px;
+  }
+  .diligence-table th:first-child { border-radius: 8px 0 0 8px; }
+  .diligence-table th:last-child { border-radius: 0 8px 8px 0; }
+  .diligence-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .score-stars {
+    color: var(--yellow);
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+  .score-star-empty {
+    color: var(--line);
+  }
+  .quick-score-btns {
+    display: flex;
+    gap: 4px;
+  }
+  .quick-score-btn {
+    padding: 4px 8px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .quick-score-btn:hover { background: var(--soft); }
+  .quick-score-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .priority-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    margin-left: 4px;
+    background: #FDF5E8;
+    color: var(--accent-dark);
+  }
+  .help-card {
+    background: linear-gradient(to right, #FDF5E8, #FAF7F2);
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+  .help-card h3 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-family: 'Gowun Dodum', sans-serif;
+  }
+  .help-card ul {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    color: var(--muted);
+  }
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  @media (max-width: 640px) {
+    .row.cols-2, .row.cols-3 { grid-template-columns: 1fr; }
+    h1 { font-size: 24px; }
+    .card { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>우리 반 직업 배정소</h1>
+    <p class="subtitle">한 달 동안 우리가 맡을 직업을 정해봐요</p>
+    <div id="class-header" style="margin-top: 14px; font-size: 13px; color: var(--muted);"></div>
+  </header>
+
+  <div class="mode-switch hidden" id="mode-switch">
+    <button class="mode-btn active" data-mode="student">학생용 (지원하기)</button>
+    <button class="mode-btn" data-mode="teacher">선생님용 (관리)</button>
+  </div>
+
+  <div id="local-mode-banner" class="alert hidden">
+    ⚠️ 지금은 <strong>로컬 모드</strong>예요. 데이터가 이 브라우저에만 저장되므로 학생들이 각자 기기에서 접속할 수 없어요.
+    학생들이 자기 폰·태블릿으로 지원하게 하려면 README의 안내대로 서버 주소를 설정한 뒤 배포해주세요.
+  </div>
+
+  <!-- ============ 학생용 화면 ============ -->
+  <section id="student-view" class="hidden">
+    <div class="card">
+      <h2>지원서 작성</h2>
+      <div id="apply-status"></div>
+
+      <div class="row cols-2">
+        <div>
+          <label>번호와 이름 (동명이인 구분을 위해 번호를 함께 적어주세요)</label>
+          <input type="text" id="s-name" placeholder="예: 7번 김민수" oninput="showMyScore()">
+        </div>
+      </div>
+      <div id="my-score-info"></div>
+
+      <div class="row">
+        <div>
+          <label>1지망 직업 ⭐</label>
+          <select id="s-choice1"><option value="">선택해주세요</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>1지망 지원 이유 (선생님만 볼 수 있어요)</label>
+          <textarea id="s-reason1" placeholder="이 직업을 하고 싶은 이유를 적어주세요"></textarea>
+        </div>
+      </div>
+
+      <div class="row cols-2">
+        <div>
+          <label>2지망 직업</label>
+          <select id="s-choice2"><option value="">선택해주세요</option></select>
+        </div>
+        <div>
+          <label>3지망 직업</label>
+          <select id="s-choice3"><option value="">선택해주세요</option></select>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="submitApplication()">지원서 제출</button>
+        <button class="btn btn-ghost" onclick="clearForm()">새로 작성</button>
+        <button class="btn btn-ghost hidden" id="student-refresh-btn" onclick="studentRefresh(true)">새로고침</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>이번 달 지원 현황</h2>
+      <div id="student-stats" class="stats"></div>
+      <div id="student-applied-list"></div>
+    </div>
+
+    <div class="card">
+      <h2>배정 결과</h2>
+      <p class="note">선생님이 배정을 실행하면 여기에 결과가 나타나요. (안 보이면 새로고침을 눌러주세요)</p>
+      <div id="student-result-content"><div class="empty">아직 배정 결과가 없어요.</div></div>
+    </div>
+  </section>
+
+  <!-- ============ 선생님용 화면 ============ -->
+  <section id="teacher-view" class="hidden">
+
+    <div class="help-card">
+      <h3>💡 사용 흐름 안내</h3>
+      <ul>
+        <li><strong>처음 한 번:</strong> 직업 목록 만들기 → 학생들에게 학급 코드(또는 링크) 공유</li>
+        <li><strong>매달:</strong> 학생들이 각자 기기에서 지원 → 배정 실행 → 한 달 후 성실도 점수 입력 → 마감</li>
+        <li><strong>가산점:</strong> 성실도 점수가 높은 학생일수록 다음 달 1지망 배정 확률이 올라갑니다</li>
+      </ul>
+    </div>
+
+    <!-- 학급 코드 공유 (원격 모드) -->
+    <div class="card hidden" id="share-card">
+      <h2>학생 초대</h2>
+      <p style="font-size: 13px; color: var(--muted); margin: 0 0 12px;">
+        학생들이 각자 기기(폰·태블릿·컴퓨터)에서 아래 코드나 링크로 접속해 지원할 수 있어요.
+      </p>
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <span class="code-badge" id="class-code-display"></span>
+        <div class="btn-group" style="margin: 0;">
+          <button class="btn btn-ghost" onclick="copyClassCode()">코드 복사</button>
+          <button class="btn btn-primary" onclick="copyStudentLink()">학생용 링크 복사</button>
+        </div>
+      </div>
+      <p class="note" id="share-link-preview" style="word-break: break-all;"></p>
+    </div>
+
+    <!-- 학급 설정 -->
+    <div class="card">
+      <h2>학급 설정</h2>
+      <div class="row cols-2">
+        <div>
+          <label>학급 이름</label>
+          <input type="text" id="class-name-input" placeholder="예: 3학년 2반">
+        </div>
+        <div>
+          <label>선생님 성함</label>
+          <input type="text" id="teacher-name-input" placeholder="선택 입력">
+        </div>
+      </div>
+      <div class="row cols-2">
+        <div>
+          <label>선생님 PIN (변경할 때만 입력, 숫자 4자리 이상)</label>
+          <input type="password" id="teacher-pin-input" placeholder="변경하지 않으면 비워두세요" autocomplete="new-password">
+          <p class="note">학생이 선생님 화면에 들어오지 못하게 막는 비밀번호예요.</p>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-ghost" onclick="updateClassInfo()">저장</button>
+      </div>
+    </div>
+
+    <!-- 직업 목록 관리 -->
+    <div class="card">
+      <h2>이번 달 직업 목록</h2>
+      <div class="row cols-3">
+        <div>
+          <label>직업 이름</label>
+          <input type="text" id="job-name" placeholder="예: 칠판지기">
+        </div>
+        <div>
+          <label>모집 인원</label>
+          <input type="number" id="job-capacity" min="1" max="30" value="1">
+        </div>
+        <div>
+          <label>인기 직업?</label>
+          <select id="job-popular">
+            <option value="false">일반</option>
+            <option value="true">인기 직업</option>
+          </select>
+          <p class="note">인기 직업은 지난달 경험자에게 우선순위가 낮아져요</p>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="addJob()">직업 추가</button>
+        <button class="btn btn-ghost" onclick="loadSampleJobs()">예시 직업 불러오기</button>
+        <button class="btn btn-ghost" onclick="clearJobs()">전체 삭제</button>
+      </div>
+
+      <div class="job-list" id="job-list"></div>
+      <div class="alert info" id="capacity-info"></div>
+    </div>
+
+    <!-- 성실도 점수 관리 -->
+    <div class="card">
+      <h2>학생 성실도 점수</h2>
+      <p style="font-size: 13px; color: var(--muted); margin: 0 0 14px;">
+        지난달 직업을 성실히 수행한 학생에게 점수를 주세요. 점수가 높을수록 다음 달 1지망 배정에 유리해집니다.
+        <br>점수는 0~5점이고, 한 번 입력하면 다음 달 배정에 자동 반영됩니다.
+        <br><strong>점수는 이 기기(선생님 기기)에만 저장되고 학생들에게는 공개되지 않아요.</strong>
+      </p>
+      <div id="diligence-controls" style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+        <button class="btn btn-ghost" onclick="autoFillFromAssignments()">지난달 배정자 명단 불러오기</button>
+        <button class="btn btn-ghost" onclick="addBulkStudents()">학생 명단 한꺼번에 추가</button>
+        <button class="btn btn-ghost" onclick="resetAllScores()" style="color: var(--red);">점수 모두 0으로</button>
+      </div>
+      <div id="diligence-table-wrap"></div>
+    </div>
+
+    <!-- 지원 현황 -->
+    <div class="card">
+      <h2>지원 현황</h2>
+      <div class="btn-group hidden" id="refresh-apps-wrap" style="margin-bottom: 10px;">
+        <button class="btn btn-ghost" onclick="refreshApplications(true)">지원서 새로고침</button>
+        <span class="sync-status" id="sync-status" style="align-self: center;"></span>
+      </div>
+      <div id="applications-summary"></div>
+      <div id="applications-table-wrap"></div>
+    </div>
+
+    <!-- 배정 실행 -->
+    <div class="card">
+      <h2>자동 배정 실행</h2>
+      <div class="alert">
+        <strong>배정 방식:</strong> 1지망 우선 → 2지망 → 3지망 순으로 배정합니다.
+        정원 초과 시 <strong>(1) 성실도 점수가 높은 학생</strong>, (2) 지난달 인기직 미경험자, (3) 지원 이유 작성 학생, (4) 추첨 순으로 결정됩니다.
+        남은 학생은 빈자리에 자동 배정됩니다.
+      </div>
+      <details class="config">
+        <summary>고급 설정 (어떤 기준을 사용할지 선택)</summary>
+        <div style="margin-top: 12px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-weight: normal;">
+            <input type="checkbox" id="prioritize-diligence" checked>
+            <strong>성실도 점수가 높은 학생 우선 배정 (가장 강한 가중치)</strong>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; margin-top: 8px;">
+            <input type="checkbox" id="prioritize-newbie" checked>
+            지난달 인기직 미경험자 우선 배정
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; margin-top: 8px;">
+            <input type="checkbox" id="prioritize-reason" checked>
+            지원 이유를 작성한 학생 우선 배정
+          </label>
+        </div>
+      </details>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="runAssignment()">배정 실행하기</button>
+        <button class="btn btn-ghost" onclick="exportResults()">결과 내보내기 (CSV)</button>
+        <button class="btn btn-ghost" onclick="archiveMonth()">이번 달 마감 & 다음 달 준비</button>
+      </div>
+      <div id="assignment-message" style="margin-top: 12px;"></div>
+    </div>
+
+    <!-- 배정 결과 -->
+    <div class="card">
+      <h2>배정 결과</h2>
+      <div id="result-stats" class="stats"></div>
+      <div id="result-content"></div>
+    </div>
+
+    <!-- 데이터 관리 -->
+    <div class="card">
+      <h2>데이터 관리</h2>
+      <p class="note">성실도 점수와 지난달 기록은 이 브라우저에 저장됩니다. 다른 컴퓨터로 옮기거나 컴퓨터 초기화에 대비해 배정 후에는 꼭 백업해주세요.</p>
+      <div class="btn-group">
+        <button class="btn btn-ghost" onclick="exportBackup()">전체 백업 (JSON 다운로드)</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">백업 불러오기</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importBackup(event)">
+        <button class="btn btn-ghost" onclick="resetAll()" style="color: var(--red);">전체 초기화</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">우리 반 직업 배정소 · 학급 운영 자동화 도구 · 자유롭게 공유해 사용하세요</div>
+</div>
+
+<!-- ============ 시작 화면 (역할 선택) ============ -->
+<div id="entry-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <!-- 1단계: 역할 선택 -->
+    <div id="entry-role">
+      <h2>환영합니다 👋</h2>
+      <p style="color: var(--muted); font-size: 14px; margin: 0 0 20px;">어떻게 접속하시나요?</p>
+      <div id="entry-continue-list"></div>
+      <button class="entry-choice" onclick="showEntryPanel('student')">
+        <span class="ec-title">🙋 학생이에요</span>
+        <span class="ec-desc" style="display:block;">선생님께 받은 학급 코드로 참여해요</span>
+      </button>
+      <button class="entry-choice" onclick="showEntryPanel('create')">
+        <span class="ec-title">🏫 선생님 — 새 학급 만들기</span>
+        <span class="ec-desc" style="display:block;">우리 반의 학급 코드를 새로 만들어요</span>
+      </button>
+      <button class="entry-choice" onclick="showEntryPanel('connect')">
+        <span class="ec-title">🔑 선생님 — 기존 학급 접속</span>
+        <span class="ec-desc" style="display:block;">다른 기기에서 만든 학급에 코드와 PIN으로 접속해요</span>
+      </button>
+    </div>
+
+    <!-- 학생: 코드 입력 -->
+    <div id="entry-student" class="hidden">
+      <h2>학급 코드 입력 🙋</h2>
+      <p style="color: var(--muted); font-size: 14px; margin: 0 0 16px;">선생님께 받은 6자리 학급 코드를 입력해주세요.</p>
+      <div class="row">
+        <div>
+          <label>학급 코드</label>
+          <input type="text" id="entry-student-code" placeholder="예: ABC123" maxlength="6" style="text-transform: uppercase; letter-spacing: 4px; font-weight: 600;">
+        </div>
+      </div>
+      <div id="entry-student-error"></div>
+      <div class="btn-group" style="margin-top: 12px;">
+        <button class="btn btn-primary" onclick="joinAsStudent()">참여하기</button>
+        <button class="btn btn-ghost" onclick="showEntryPanel('role')">뒤로</button>
+      </div>
+    </div>
+
+    <!-- 선생님: 새 학급 -->
+    <div id="entry-create" class="hidden">
+      <h2>새 학급 만들기 🏫</h2>
+      <p style="color: var(--muted); font-size: 14px; margin: 0 0 16px;">학급 정보를 입력하면 학생들에게 공유할 학급 코드가 만들어져요.</p>
+      <div class="row">
+        <div>
+          <label>학급 이름</label>
+          <input type="text" id="entry-class-name" placeholder="예: 3학년 2반">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>선생님 성함 (선택)</label>
+          <input type="text" id="entry-teacher-name" placeholder="예: 김선생">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>선생님 PIN (숫자 4자리 이상)</label>
+          <input type="password" id="entry-pin" placeholder="선생님 화면 보호용 비밀번호" autocomplete="new-password">
+        </div>
+      </div>
+      <div id="entry-create-error"></div>
+      <div class="btn-group" style="margin-top: 12px;">
+        <button class="btn btn-primary" onclick="createClass()">학급 만들기</button>
+        <button class="btn btn-ghost" onclick="showEntryPanel('role')">뒤로</button>
+      </div>
+    </div>
+
+    <!-- 선생님: 기존 학급 접속 -->
+    <div id="entry-connect" class="hidden">
+      <h2>기존 학급 접속 🔑</h2>
+      <p style="color: var(--muted); font-size: 14px; margin: 0 0 16px;">
+        학급 코드와 PIN을 입력해주세요.<br>
+        <span style="font-size: 12px;">※ 성실도 점수와 지난달 기록은 원래 기기에만 있어요. 옮기려면 원래 기기에서 백업 파일을 만들어 이 기기에서 불러와주세요.</span>
+      </p>
+      <div class="row cols-2">
+        <div>
+          <label>학급 코드</label>
+          <input type="text" id="entry-connect-code" placeholder="예: ABC123" maxlength="6" style="text-transform: uppercase;">
+        </div>
+        <div>
+          <label>선생님 PIN</label>
+          <input type="password" id="entry-connect-pin" autocomplete="current-password">
+        </div>
+      </div>
+      <div id="entry-connect-error"></div>
+      <div class="btn-group" style="margin-top: 12px;">
+        <button class="btn btn-primary" onclick="connectAsTeacher()">접속하기</button>
+        <button class="btn btn-ghost" onclick="showEntryPanel('role')">뒤로</button>
+      </div>
+    </div>
+
+    <!-- 학급 생성 완료 -->
+    <div id="entry-created" class="hidden">
+      <h2>학급이 만들어졌어요 🎉</h2>
+      <p style="color: var(--muted); font-size: 14px; margin: 0 0 16px;">아래 코드를 학생들에게 알려주세요. 선생님 화면의 "학생 초대"에서 언제든 다시 볼 수 있어요.</p>
+      <div style="text-align: center; margin: 20px 0;">
+        <span class="code-badge" id="entry-created-code"></span>
+      </div>
+      <div class="btn-group" style="margin-top: 12px; justify-content: center;">
+        <button class="btn btn-primary" onclick="finishCreated()">시작하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 로컬 모드 첫 실행 시 학급 설정 모달 -->
+<div id="setup-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>환영합니다 👋</h2>
+    <p style="color: var(--muted); font-size: 14px; margin: 0 0 20px;">처음 사용하시는군요! 우리 학급 정보를 입력해주세요.</p>
+    <div class="row">
+      <div>
+        <label>학급 이름</label>
+        <input type="text" id="setup-class-name" placeholder="예: 3학년 2반">
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>선생님 성함 (선택)</label>
+        <input type="text" id="setup-teacher-name" placeholder="예: 김선생">
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>선생님 PIN (선택, 숫자 4자리 이상)</label>
+        <input type="password" id="setup-pin" placeholder="학생이 선생님 화면에 못 들어가게 막아요" autocomplete="new-password">
+      </div>
+    </div>
+    <div class="btn-group" style="margin-top: 16px;">
+      <button class="btn btn-primary" onclick="completeSetup()">시작하기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// ★★★ 배포 전 설정 ★★★
+// Firebase Realtime Database 주소를 입력하면 학생들이 각자 기기에서
+// 학급 코드로 접속할 수 있어요. (설정 방법은 README.md 참고)
+// 비워두면 이 브라우저에만 저장되는 "로컬 모드"로 동작합니다.
+// 예: 'https://my-project-default-rtdb.asia-southeast1.firebasedatabase.app'
+const SYNC_SERVER_URL = '';
+// ═══════════════════════════════════════════════════════════════
+
+const REMOTE = !!SYNC_SERVER_URL;
+const STORAGE_KEY = 'classroom_jobs_data_v2';           // 로컬 모드
+const REGISTRY_KEY = 'classroom_jobs_my_classes_v3';    // 이 기기에서 만든/접속한 학급 목록
+const STUDENT_KEY = 'classroom_jobs_student_v3';        // 학생 접속 정보
+
+let role = REMOTE ? null : 'local';   // 'local' | 'teacher' | 'student'
+let classCode = null;
+let data = null;                      // 선생님/로컬 데이터
+let studentCache = { meta: null, jobs: [], appliedKeys: [], assignments: null, assignedMeta: null };
+let teacherUnlocked = false;          // 이번 세션에서 선생님 PIN 확인 여부
+let pollTimer = null;
+let diligenceNames = [];              // 성실도 표 렌더링 시 이름 목록 (onclick 인덱스 참조용)
+
+// ============ 공통 유틸 ============
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function getCurrentMonth() {
+  const d = new Date();
+  return `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+}
+
+// PIN 해시 (교실 수준의 보호용 — 결정적 문자열 해시)
+function hashPin(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+
+function genCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 헷갈리는 I, O, 0, 1 제외
+  let c = '';
+  for (let i = 0; i < 6; i++) c += chars[Math.floor(Math.random() * chars.length)];
+  return c;
+}
+
+// Firebase 키에 쓸 수 없는 문자 치환
+function sanitizeKey(name) {
+  return name.replace(/[.#$/\[\]]/g, '_');
+}
+
+function csvCell(v) {
+  return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+}
+
+// ============ 서버 통신 ============
+async function srv(path, method = 'GET', body, query = '') {
+  const base = SYNC_SERVER_URL.replace(/\/+$/, '');
+  const url = `${base}/classes/${classCode}${path ? '/' + path : ''}.json${query}`;
+  const opts = { method };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (!res.ok) throw new Error(`서버 응답 오류 (${res.status})`);
+  return res.json();
+}
+
+function serverErrorAlert(e) {
+  alert('서버와 통신하지 못했어요. 인터넷 연결을 확인하고 다시 시도해주세요.\n\n(' + e.message + ')');
+}
+
+// ============ 데이터 모델 ============
+function freshData() {
+  return {
+    classInfo: { className: '', teacherName: '' },
+    pinHash: null,
+    jobs: [],
+    applications: [],
+    assignments: {},
+    assignedMeta: {},
+    diligenceScores: {},  // { 학생이름: 0~5 } — 선생님 기기에만 저장
+    history: [],
+    month: getCurrentMonth(),
+    setupDone: false,
+  };
+}
+
+function migrateData(d) {
+  if (!d.classInfo) d.classInfo = { className: '', teacherName: '' };
+  if (d.pinHash === undefined) d.pinHash = null;
+  if (!Array.isArray(d.jobs)) d.jobs = [];
+  if (!Array.isArray(d.applications)) d.applications = [];
+  if (!d.assignments) d.assignments = {};
+  if (!d.assignedMeta) d.assignedMeta = {};
+  if (!d.diligenceScores) d.diligenceScores = {};
+  if (!Array.isArray(d.history)) d.history = [];
+  if (!d.month) d.month = getCurrentMonth();
+  if (d.setupDone === undefined) d.setupDone = !!(d.jobs && d.jobs.length);
+  return d;
+}
+
+function teacherStorageKey(code) {
+  return 'classroom_jobs_teacher_v3_' + code;
+}
+
+function loadLocalData() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return migrateData(JSON.parse(stored));
+    const oldStored = localStorage.getItem('classroom_jobs_data_v1');
+    if (oldStored) {
+      const migrated = migrateData(JSON.parse(oldStored));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+  } catch (e) { console.error(e); }
+  return freshData();
+}
+
+function saveData() {
+  if (!data) return;
+  try {
+    if (role === 'teacher' && classCode) {
+      localStorage.setItem(teacherStorageKey(classCode), JSON.stringify(data));
+    } else if (role === 'local') {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+  } catch (e) {
+    console.error(e);
+    alert('브라우저 저장 공간에 저장하지 못했어요. 시크릿 모드가 아닌지 확인해주세요.');
+  }
+}
+
+function loadRegistry() {
+  try { return JSON.parse(localStorage.getItem(REGISTRY_KEY)) || []; } catch (e) { return []; }
+}
+
+function saveRegistry(list) {
+  localStorage.setItem(REGISTRY_KEY, JSON.stringify(list));
+}
+
+function rememberClass(code, className) {
+  const list = loadRegistry().filter(c => c.code !== code);
+  list.unshift({ code, className });
+  saveRegistry(list.slice(0, 5));
+}
+
+// ============ 시작 화면 ============
+function showEntryPanel(name) {
+  ['role', 'student', 'create', 'connect', 'created'].forEach(p => {
+    document.getElementById('entry-' + p).classList.toggle('hidden', p !== name);
+  });
+}
+
+function renderContinueList() {
+  const wrap = document.getElementById('entry-continue-list');
+  const registry = loadRegistry();
+  const saved = getSavedStudent();
+  let html = '';
+  // 예전 버전(한 기기 모드)이 이 브라우저에 남긴 데이터가 있으면 구출 버튼 표시
+  if (localStorage.getItem(STORAGE_KEY) || localStorage.getItem('classroom_jobs_data_v1')) {
+    html += `<div class="alert info" style="text-align: left;">
+      💾 이 기기에 <strong>예전 버전의 학급 데이터</strong>(직업 목록·지원서·배정 결과)가 남아있어요.<br>
+      <button class="btn btn-ghost" style="margin-top: 8px;" onclick="exportLegacyBackup()">JSON 파일로 내려받기</button>
+      <span style="font-size: 12px; display: block; margin-top: 6px;">내려받은 파일은 학급을 만든 뒤 선생님 화면의 "백업 불러오기"로 가져올 수 있어요.</span>
+    </div>`;
+  }
+  registry.forEach(c => {
+    html += `<button class="entry-choice" onclick="resumeTeacher('${c.code}')">
+      <span class="ec-title">📂 ${escapeHtml(c.className || '내 학급')} 계속하기</span>
+      <span class="ec-desc" style="display:block;">선생님으로 접속 · 코드 ${c.code}</span>
+    </button>`;
+  });
+  if (saved && saved.code) {
+    html += `<button class="entry-choice" onclick="resumeStudent()">
+      <span class="ec-title">🙋 학생으로 계속하기</span>
+      <span class="ec-desc" style="display:block;">학급 코드 ${escapeHtml(saved.code)}</span>
+    </button>`;
+  }
+  wrap.innerHTML = html;
+}
+
+function getSavedStudent() {
+  try { return JSON.parse(localStorage.getItem(STUDENT_KEY)); } catch (e) { return null; }
+}
+
+function exportLegacyBackup() {
+  const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('classroom_jobs_data_v1');
+  if (!raw) { alert('남아있는 예전 데이터가 없어요.'); return; }
+  downloadFile(raw, '예전학급데이터_백업.json', 'application/json');
+}
+
+function entryError(id, msg) {
+  document.getElementById(id).innerHTML = msg ? `<div class="alert danger">${msg}</div>` : '';
+}
+
+// --- 학생 참여 ---
+async function joinAsStudent() {
+  const code = document.getElementById('entry-student-code').value.trim().toUpperCase();
+  if (!/^[A-Z2-9]{6}$/.test(code)) { entryError('entry-student-error', '6자리 학급 코드를 정확히 입력해주세요.'); return; }
+  entryError('entry-student-error', '');
+  classCode = code;
+  let meta;
+  try {
+    meta = await srv('meta');
+  } catch (e) { classCode = null; entryError('entry-student-error', '서버에 연결하지 못했어요. 인터넷 연결을 확인해주세요.'); return; }
+  if (!meta) { classCode = null; entryError('entry-student-error', '해당 코드의 학급을 찾을 수 없어요. 코드를 다시 확인해주세요.'); return; }
+  role = 'student';
+  localStorage.setItem(STUDENT_KEY, JSON.stringify({ code }));
+  studentCache.meta = meta;
+  await studentRefresh(false);
+  enterApp();
+}
+
+async function resumeStudent() {
+  const saved = getSavedStudent();
+  if (!saved || !saved.code) return;
+  document.getElementById('entry-student-code').value = saved.code;
+  showEntryPanel('student');
+  await joinAsStudent();
+}
+
+// --- 선생님: 새 학급 ---
+async function createClass() {
+  const className = document.getElementById('entry-class-name').value.trim();
+  const teacherName = document.getElementById('entry-teacher-name').value.trim();
+  const pin = document.getElementById('entry-pin').value.trim();
+  if (!className) { entryError('entry-create-error', '학급 이름을 입력해주세요.'); return; }
+  if (!/^\d{4,}$/.test(pin)) { entryError('entry-create-error', 'PIN은 숫자 4자리 이상으로 정해주세요.'); return; }
+  entryError('entry-create-error', '');
+
+  try {
+    // 코드 충돌 방지: 비어 있는 코드가 나올 때까지 재생성
+    for (let i = 0; i < 8; i++) {
+      classCode = genCode();
+      const existing = await srv('meta');
+      if (!existing) break;
+      classCode = null;
+    }
+    if (!classCode) throw new Error('학급 코드를 만들지 못했어요. 다시 시도해주세요.');
+
+    const meta = {
+      className, teacherName,
+      month: getCurrentMonth(),
+      pinHash: hashPin(pin),
+      createdAt: new Date().toISOString(),
+    };
+    await srv('meta', 'PUT', meta);
+
+    data = freshData();
+    data.classInfo = { className, teacherName };
+    data.pinHash = meta.pinHash;
+    data.month = meta.month;
+    data.setupDone = true;
+    role = 'teacher';
+    teacherUnlocked = true;
+    saveData();
+    rememberClass(classCode, className);
+
+    document.getElementById('entry-created-code').textContent = classCode;
+    showEntryPanel('created');
+  } catch (e) {
+    classCode = null;
+    entryError('entry-create-error', '학급을 만들지 못했어요. 인터넷 연결을 확인하고 다시 시도해주세요.');
+  }
+}
+
+function finishCreated() {
+  enterApp();
+  switchMode('teacher');
+}
+
+// --- 선생님: 기존 학급 접속 ---
+async function connectAsTeacher() {
+  const code = document.getElementById('entry-connect-code').value.trim().toUpperCase();
+  const pin = document.getElementById('entry-connect-pin').value.trim();
+  if (!/^[A-Z2-9]{6}$/.test(code)) { entryError('entry-connect-error', '6자리 학급 코드를 정확히 입력해주세요.'); return; }
+  if (!pin) { entryError('entry-connect-error', 'PIN을 입력해주세요.'); return; }
+  entryError('entry-connect-error', '');
+  classCode = code;
+  try {
+    const meta = await srv('meta');
+    if (!meta) { classCode = null; entryError('entry-connect-error', '해당 코드의 학급을 찾을 수 없어요.'); return; }
+    if (hashPin(pin) !== meta.pinHash) { classCode = null; entryError('entry-connect-error', 'PIN이 맞지 않아요.'); return; }
+
+    // 이 기기에 저장된 데이터가 있으면 이어서, 없으면 서버에서 구성
+    const stored = localStorage.getItem(teacherStorageKey(code));
+    if (stored) {
+      data = migrateData(JSON.parse(stored));
+    } else {
+      data = freshData();
+      data.setupDone = true;
+    }
+    data.classInfo = { className: meta.className || '', teacherName: meta.teacherName || '' };
+    data.pinHash = meta.pinHash;
+    data.month = meta.month || data.month;
+    const jobs = await srv('jobs');
+    if (Array.isArray(jobs)) data.jobs = jobs;
+    const assignments = await srv('assignments');
+    if (assignments) data.assignments = assignments;
+    const assignedMeta = await srv('assignedMeta');
+    if (assignedMeta) data.assignedMeta = assignedMeta;
+
+    role = 'teacher';
+    teacherUnlocked = true;
+    saveData();
+    rememberClass(code, meta.className);
+    await refreshApplications(false);
+    enterApp();
+    switchMode('teacher');
+  } catch (e) {
+    classCode = null;
+    entryError('entry-connect-error', '서버에 연결하지 못했어요. 인터넷 연결을 확인해주세요.');
+  }
+}
+
+async function resumeTeacher(code) {
+  classCode = code;
+  const stored = localStorage.getItem(teacherStorageKey(code));
+  if (!stored) { classCode = null; showEntryPanel('connect'); document.getElementById('entry-connect-code').value = code; return; }
+  data = migrateData(JSON.parse(stored));
+  role = 'teacher';
+  teacherUnlocked = true;
+  try {
+    const meta = await srv('meta');
+    if (meta) {
+      data.month = meta.month || data.month;
+      data.pinHash = meta.pinHash || data.pinHash;
+    }
+    await refreshApplications(false);
+  } catch (e) { /* 오프라인이어도 로컬 데이터로 계속 */ }
+  enterApp();
+  switchMode('teacher');
+}
+
+// ============ 화면 진입/전환 ============
+function enterApp() {
+  document.getElementById('entry-modal').classList.add('hidden');
+  document.getElementById('setup-modal').classList.add('hidden');
+
+  const modeSwitch = document.getElementById('mode-switch');
+  // 학생은 선생님 탭 자체가 보이지 않음
+  modeSwitch.classList.toggle('hidden', role === 'student');
+  document.getElementById('student-refresh-btn').classList.toggle('hidden', role !== 'student');
+  document.getElementById('share-card').classList.toggle('hidden', role !== 'teacher');
+  document.getElementById('refresh-apps-wrap').classList.toggle('hidden', role !== 'teacher');
+  document.getElementById('local-mode-banner').classList.toggle('hidden', role !== 'local');
+
+  renderClassHeader();
+  if (role === 'teacher') {
+    renderShareCard();
+    startPolling();
+  }
+  renderStudent();
+  if (role !== 'student') renderTeacher();
+  switchMode('student');
+}
+
+function switchMode(mode) {
+  if (mode === 'teacher') {
+    if (role === 'student') return;
+    // 로컬 모드에서 PIN이 설정되어 있으면 세션당 한 번 확인
+    if (role === 'local' && data.pinHash && !teacherUnlocked) {
+      const pin = prompt('선생님 PIN을 입력해주세요.');
+      if (pin === null) return;
+      if (hashPin(pin.trim()) !== data.pinHash) { alert('PIN이 맞지 않아요.'); return; }
+      teacherUnlocked = true;
+    }
+  }
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  document.getElementById('student-view').classList.toggle('hidden', mode !== 'student');
+  document.getElementById('teacher-view').classList.toggle('hidden', mode !== 'teacher');
+  if (mode === 'teacher') renderTeacher();
+  else renderStudent();
+}
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchMode(btn.dataset.mode));
+});
+
+function renderClassHeader() {
+  const parts = [];
+  if (role === 'student') {
+    const meta = studentCache.meta || {};
+    if (meta.className) parts.push(`<strong>${escapeHtml(meta.className)}</strong>`);
+    if (meta.teacherName) parts.push(escapeHtml(meta.teacherName) + ' 선생님');
+    if (meta.month) parts.push(escapeHtml(meta.month));
+    if (classCode) parts.push('학급 코드 ' + classCode);
+  } else if (data) {
+    const info = data.classInfo || {};
+    if (info.className) parts.push(`<strong>${escapeHtml(info.className)}</strong>`);
+    if (info.teacherName) parts.push(escapeHtml(info.teacherName) + ' 선생님');
+    parts.push(escapeHtml(data.month));
+    if (classCode) parts.push('학급 코드 ' + classCode);
+  }
+  document.getElementById('class-header').innerHTML = parts.join(' · ');
+}
+
+// ============ 학생 초대 (원격 모드) ============
+function studentLink() {
+  return location.origin + location.pathname + '?code=' + classCode;
+}
+
+function renderShareCard() {
+  document.getElementById('class-code-display').textContent = classCode || '';
+  document.getElementById('share-link-preview').textContent = '학생용 링크: ' + studentLink();
+}
+
+function copyText(text, doneMsg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => alert(doneMsg), () => prompt('아래 내용을 복사해주세요:', text));
+  } else {
+    prompt('아래 내용을 복사해주세요:', text);
+  }
+}
+
+function copyClassCode() { copyText(classCode, '학급 코드가 복사되었어요: ' + classCode); }
+function copyStudentLink() { copyText(studentLink(), '학생용 링크가 복사되었어요.'); }
+
+// ============ 학급 설정 저장 ============
+async function updateClassInfo() {
+  const className = document.getElementById('class-name-input').value.trim();
+  const teacherName = document.getElementById('teacher-name-input').value.trim();
+  const newPin = document.getElementById('teacher-pin-input').value.trim();
+  if (!className) { alert('학급 이름은 비울 수 없어요.'); return; }
+  if (newPin && !/^\d{4,}$/.test(newPin)) { alert('PIN은 숫자 4자리 이상으로 정해주세요.'); return; }
+
+  data.classInfo = { className, teacherName };
+  if (newPin) data.pinHash = hashPin(newPin);
+
+  if (role === 'teacher') {
+    try {
+      const patch = { className, teacherName };
+      if (newPin) patch.pinHash = data.pinHash;
+      await srv('meta', 'PATCH', patch);
+    } catch (e) { serverErrorAlert(e); return; }
+    rememberClass(classCode, className);
+  }
+  saveData();
+  document.getElementById('teacher-pin-input').value = '';
+  renderClassHeader();
+  alert('학급 정보가 저장되었어요.' + (newPin ? ' (PIN도 변경되었어요)' : ''));
+}
+
+// 로컬 모드 최초 설정
+function completeSetup() {
+  const className = document.getElementById('setup-class-name').value.trim();
+  const teacherName = document.getElementById('setup-teacher-name').value.trim();
+  const pin = document.getElementById('setup-pin').value.trim();
+  if (!className) { alert('학급 이름을 입력해주세요.'); return; }
+  if (pin && !/^\d{4,}$/.test(pin)) { alert('PIN은 숫자 4자리 이상으로 정해주세요.'); return; }
+  data.classInfo = { className, teacherName };
+  if (pin) data.pinHash = hashPin(pin);
+  data.setupDone = true;
+  saveData();
+  document.getElementById('setup-modal').classList.add('hidden');
+  renderClassHeader();
+  renderStudent();
+}
+
+// ============ 성실도 점수 관리 (선생님 기기에만 저장) ============
+function setDiligenceScore(nameIdx, score) {
+  const name = diligenceNames[nameIdx];
+  if (name === undefined) return;
+  score = Math.max(0, Math.min(5, parseFloat(score) || 0));
+  data.diligenceScores[name] = score;
+  saveData();
+  renderDiligenceTable();
+}
+
+function autoFillFromAssignments() {
+  let source = null;
+  let sourceLabel = '';
+  if (data.history.length > 0) {
+    source = data.history[data.history.length - 1].assignments;
+    sourceLabel = '지난달';
+  } else if (data.assignments && Object.keys(data.assignments).length > 0) {
+    source = data.assignments;
+    sourceLabel = '이번 달';
+  }
+  if (!source) { alert('아직 배정 기록이 없어요. 직접 학생 명단을 추가해주세요.'); return; }
+  const allStudents = new Set();
+  Object.values(source).forEach(arr => (arr || []).forEach(s => allStudents.add(s)));
+  let added = 0;
+  allStudents.forEach(name => {
+    if (!(name in data.diligenceScores)) {
+      data.diligenceScores[name] = 0;
+      added++;
+    }
+  });
+  saveData();
+  renderDiligenceTable();
+  alert(`${sourceLabel} 배정 명단에서 ${added}명을 추가했어요. (이미 있는 학생은 건너뛰었어요)`);
+}
+
+function addBulkStudents() {
+  const input = prompt('학생 이름을 입력해주세요. 쉼표(,) 또는 줄바꿈으로 구분해주세요.\n\n예: 7번 김민수, 12번 이서연, 15번 박지호');
+  if (!input) return;
+  const names = input.split(/[,\n]/).map(s => s.trim()).filter(s => s);
+  let added = 0;
+  names.forEach(name => {
+    if (!(name in data.diligenceScores)) {
+      data.diligenceScores[name] = 0;
+      added++;
+    }
+  });
+  saveData();
+  renderDiligenceTable();
+  alert(`${added}명을 추가했어요.`);
+}
+
+function removeStudent(nameIdx) {
+  const name = diligenceNames[nameIdx];
+  if (name === undefined) return;
+  if (!confirm(`"${name}" 학생을 명단에서 삭제할까요?`)) return;
+  delete data.diligenceScores[name];
+  saveData();
+  renderDiligenceTable();
+}
+
+function resetAllScores() {
+  if (!confirm('모든 학생의 점수를 0으로 만들까요? 학생 명단은 그대로 유지돼요.')) return;
+  Object.keys(data.diligenceScores).forEach(name => { data.diligenceScores[name] = 0; });
+  saveData();
+  renderDiligenceTable();
+}
+
+function renderDiligenceTable() {
+  diligenceNames = Object.keys(data.diligenceScores).sort();
+  if (diligenceNames.length === 0) {
+    document.getElementById('diligence-table-wrap').innerHTML =
+      '<div class="empty">아직 등록된 학생이 없어요. 위 버튼으로 학생 명단을 추가해주세요.</div>';
+    return;
+  }
+  let html = '<table class="diligence-table"><thead><tr><th>학생</th><th>점수 (0~5)</th><th>등급</th><th></th></tr></thead><tbody>';
+  diligenceNames.forEach((name, i) => {
+    const score = data.diligenceScores[name] || 0;
+    html += `<tr>
+      <td><strong>${escapeHtml(name)}</strong></td>
+      <td>
+        <div class="quick-score-btns">
+          ${[0,1,2,3,4,5].map(n =>
+            `<button class="quick-score-btn ${score === n ? 'active' : ''}" onclick="setDiligenceScore(${i}, ${n})">${n}</button>`
+          ).join('')}
+        </div>
+      </td>
+      <td><span class="score-stars">${'★'.repeat(Math.round(score))}<span class="score-star-empty">${'★'.repeat(5 - Math.round(score))}</span></span></td>
+      <td><button class="btn-danger" onclick="removeStudent(${i})">삭제</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  const scores = Object.values(data.diligenceScores);
+  const avg = scores.length ? (scores.reduce((a,b) => a+b, 0) / scores.length).toFixed(1) : 0;
+  const high = scores.filter(s => s >= 4).length;
+  html += `<div style="margin-top: 12px; font-size: 12px; color: var(--muted);">
+    총 ${diligenceNames.length}명 · 평균 ${avg}점 · 4점 이상 ${high}명
+  </div>`;
+  document.getElementById('diligence-table-wrap').innerHTML = html;
+}
+
+// 성실도 점수는 선생님 기기에만 있으므로, 학생 기기(원격 모드)에서는 아무것도 표시되지 않음
+function showMyScore() {
+  const target = document.getElementById('my-score-info');
+  if (!data || !data.diligenceScores) { target.innerHTML = ''; return; }
+  const name = document.getElementById('s-name').value.trim();
+  if (!name) { target.innerHTML = ''; return; }
+  const score = data.diligenceScores[name];
+  if (score === undefined || score === null) { target.innerHTML = ''; return; }
+  if (score >= 4) {
+    target.innerHTML = `<div class="alert success">⭐ ${escapeHtml(name)} 친구는 성실도 ${score}점이에요! 1지망에 들어갈 확률이 높아요 😊</div>`;
+  } else if (score >= 2) {
+    target.innerHTML = `<div class="alert info">${escapeHtml(name)} 친구의 성실도 점수는 ${score}점이에요. 잘하고 있어요!</div>`;
+  } else if (score > 0) {
+    target.innerHTML = `<div class="alert">${escapeHtml(name)} 친구의 성실도 점수는 ${score}점이에요. 이번 달 직업을 성실히 해서 다음에는 더 높은 점수를 받아봐요!</div>`;
+  }
+}
+
+// ============ 직업 관리 ============
+async function pushJobs() {
+  if (role !== 'teacher') return;
+  try { await srv('jobs', 'PUT', data.jobs); }
+  catch (e) { serverErrorAlert(e); }
+}
+
+function addJob() {
+  const name = document.getElementById('job-name').value.trim();
+  const capacity = parseInt(document.getElementById('job-capacity').value);
+  const popular = document.getElementById('job-popular').value === 'true';
+  if (!name) { alert('직업 이름을 입력해주세요.'); return; }
+  if (!capacity || capacity < 1) { alert('모집 인원을 정확히 입력해주세요.'); return; }
+  if (data.jobs.some(j => j.name === name)) { alert('이미 있는 직업이에요.'); return; }
+  data.jobs.push({ name, capacity, popular });
+  saveData();
+  pushJobs();
+  document.getElementById('job-name').value = '';
+  document.getElementById('job-capacity').value = '1';
+  document.getElementById('job-popular').value = 'false';
+  renderTeacher();
+}
+
+function removeJob(idx) {
+  const job = data.jobs[idx];
+  if (!job) return;
+  if (!confirm(`"${job.name}" 직업을 삭제할까요?`)) return;
+  data.jobs.splice(idx, 1);
+  saveData();
+  pushJobs();
+  renderTeacher();
+}
+
+function clearJobs() {
+  if (!confirm('직업 목록을 모두 삭제할까요?')) return;
+  data.jobs = [];
+  saveData();
+  pushJobs();
+  renderTeacher();
+}
+
+function loadSampleJobs() {
+  const samples = [
+    { name: '칠판지기', capacity: 2, popular: false },
+    { name: '환기지기', capacity: 1, popular: false },
+    { name: '우유당번', capacity: 2, popular: true },
+    { name: '책꽂이 정리', capacity: 1, popular: false },
+    { name: '교실 식물 돌보미', capacity: 1, popular: true },
+    { name: '쓰레기통 관리', capacity: 2, popular: false },
+    { name: '복도 안전지킴이', capacity: 2, popular: false },
+    { name: '알림장 도우미', capacity: 1, popular: true },
+    { name: '컴퓨터 전원 관리', capacity: 1, popular: true },
+    { name: '사물함 정리 도우미', capacity: 2, popular: false },
+  ];
+  if (data.jobs.length > 0 && !confirm('기존 직업 목록을 덮어쓸까요?')) return;
+  data.jobs = samples;
+  saveData();
+  pushJobs();
+  renderTeacher();
+}
+
+// ============ 지원서 제출 ============
+async function submitApplication() {
+  const name = document.getElementById('s-name').value.trim();
+  const c1 = document.getElementById('s-choice1').value;
+  const c2 = document.getElementById('s-choice2').value;
+  const c3 = document.getElementById('s-choice3').value;
+  const reason1 = document.getElementById('s-reason1').value.trim();
+
+  if (!name) { showApplyStatus('번호와 이름을 입력해주세요.', 'warn'); return; }
+  if (!c1) { showApplyStatus('1지망은 꼭 선택해주세요.', 'warn'); return; }
+  if (c1 === c2 || c1 === c3 || (c2 && c2 === c3)) {
+    showApplyStatus('1·2·3지망은 서로 다른 직업이어야 해요.', 'warn'); return;
+  }
+
+  const jobs = (role === 'student') ? studentCache.jobs : data.jobs;
+  if (!jobs.length) { showApplyStatus('아직 선생님이 직업 목록을 만들지 않으셨어요.', 'warn'); return; }
+
+  const app = { name, choice1: c1, choice2: c2 || null, choice3: c3 || null, reason1, submittedAt: new Date().toISOString() };
+
+  if (role === 'student' || role === 'teacher') {
+    // 원격 모드: 서버에 저장 (같은 이름은 덮어쓰기)
+    const key = sanitizeKey(name);
+    try {
+      const existing = await srv('applications/' + encodeURIComponent(key));
+      const saved = getSavedStudent() || {};
+      const isMine = saved.myKey === key;
+      if (existing && !isMine) {
+        if (!confirm(`"${name}" 이름의 지원서가 이미 있어요.\n\n내가 다시 내는 게 맞다면 [확인]을 눌러주세요.\n다른 친구의 지원서일 수 있으니, 동명이인이라면 번호를 붙여 다시 제출해주세요. (예: 7번 ${name})`)) return;
+      } else if (existing && isMine) {
+        if (!confirm('이미 제출한 지원서가 있어요. 새로 덮어쓸까요?')) return;
+      }
+      await srv('applications/' + encodeURIComponent(key), 'PUT', app);
+      if (role === 'student') {
+        localStorage.setItem(STUDENT_KEY, JSON.stringify({ code: classCode, myKey: key }));
+        await studentRefresh(false);
+      } else {
+        await refreshApplications(false);
+      }
+    } catch (e) { serverErrorAlert(e); return; }
+  } else {
+    // 로컬 모드
+    const existingIdx = data.applications.findIndex(a => a.name === name);
+    if (existingIdx >= 0) {
+      if (!confirm(`"${name}" 이름으로 이미 지원했어요. 새로 덮어쓸까요?\n(동명이인이라면 번호를 붙여 다시 제출해주세요)`)) return;
+      data.applications[existingIdx] = app;
+    } else {
+      data.applications.push(app);
+    }
+    saveData();
+  }
+
+  showApplyStatus('지원서가 잘 제출되었어요! 🎉', 'success');
+  clearForm();
+  renderStudent();
+}
+
+function clearForm() {
+  ['s-name', 's-choice1', 's-choice2', 's-choice3', 's-reason1'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('my-score-info').innerHTML = '';
+}
+
+function showApplyStatus(msg, type) {
+  const cls = type === 'success' ? 'success' : type === 'warn' ? '' : 'info';
+  document.getElementById('apply-status').innerHTML = `<div class="alert ${cls}">${msg}</div>`;
+  setTimeout(() => { document.getElementById('apply-status').innerHTML = ''; }, 4000);
+}
+
+// ============ 서버 동기화 (원격 모드) ============
+async function refreshApplications(showFeedback) {
+  if (role !== 'teacher') return;
+  const statusEl = document.getElementById('sync-status');
+  try {
+    const apps = await srv('applications');
+    data.applications = apps
+      ? Object.entries(apps).map(([key, v]) => ({ key, ...v }))
+      : [];
+    data.applications.sort((a, b) => (a.submittedAt || '').localeCompare(b.submittedAt || ''));
+    saveData();
+    statusEl.textContent = '마지막 동기화: ' + new Date().toLocaleTimeString('ko-KR');
+    renderTeacher();
+    if (showFeedback) showAssignmentMsg(`지원서 ${data.applications.length}건을 불러왔어요.`, 'success');
+  } catch (e) {
+    statusEl.textContent = '⚠️ 서버 연결 실패';
+    if (showFeedback) serverErrorAlert(e);
+  }
+}
+
+async function studentRefresh(showFeedback) {
+  if (role !== 'student') return;
+  try {
+    const [meta, jobs, appliedKeys, assignments, assignedMeta] = await Promise.all([
+      srv('meta'),
+      srv('jobs'),
+      srv('applications', 'GET', undefined, '?shallow=true'),
+      srv('assignments'),
+      srv('assignedMeta'),
+    ]);
+    studentCache.meta = meta || studentCache.meta;
+    studentCache.jobs = Array.isArray(jobs) ? jobs : [];
+    studentCache.appliedKeys = appliedKeys ? Object.keys(appliedKeys) : [];
+    studentCache.assignments = assignments;
+    studentCache.assignedMeta = assignedMeta;
+    renderClassHeader();
+    renderStudent();
+    if (showFeedback) showApplyStatus('새로고침했어요!', 'success');
+  } catch (e) {
+    if (showFeedback) serverErrorAlert(e);
+  }
+}
+
+function startPolling() {
+  stopPolling();
+  if (role !== 'teacher') return;
+  pollTimer = setInterval(() => {
+    const teacherVisible = !document.getElementById('teacher-view').classList.contains('hidden');
+    if (teacherVisible && !document.hidden) refreshApplications(false);
+  }, 20000);
+}
+
+function stopPolling() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+// ============ 자동 배정 알고리즘 ============
+async function runAssignment() {
+  if (role === 'teacher') await refreshApplications(false); // 최신 지원서 기준으로 배정
+  if (data.jobs.length === 0) { showAssignmentMsg('직업 목록을 먼저 만들어주세요.', 'warn'); return; }
+  if (data.applications.length === 0) { showAssignmentMsg('지원자가 없어요.', 'warn'); return; }
+
+  // 인기직 미경험자 확인용 - history에서 지난달 인기직 경험자 추출
+  const popularJobExperienced = new Set();
+  if (data.history.length > 0) {
+    const lastMonth = data.history[data.history.length - 1];
+    Object.entries(lastMonth.assignments || {}).forEach(([job, students]) => {
+      const jobInfo = (lastMonth.jobs || []).find(j => j.name === job);
+      if (jobInfo && jobInfo.popular) {
+        (students || []).forEach(s => popularJobExperienced.add(s));
+      }
+    });
+  }
+
+  const prioritizeReason = document.getElementById('prioritize-reason').checked;
+  const prioritizeNewbie = document.getElementById('prioritize-newbie').checked;
+  const prioritizeDiligence = document.getElementById('prioritize-diligence').checked;
+
+  const assignments = {};
+  data.jobs.forEach(j => assignments[j.name] = []);
+  const assigned = new Map(); // name -> {job, choiceLevel}
+
+  // 우선순위 점수 계산
+  // - 성실도 (0~5점): 가중치 4점/점 → 최대 +20점 (가장 큰 영향)
+  // - 인기직 미경험: +3점
+  // - 지원 이유 작성: +2점
+  // - 추첨 요소: 0~3점 → 성실도가 같거나 비슷한 학생끼리 결정
+  function priorityScore(applicant, job) {
+    let score = Math.random() * 3;
+    if (prioritizeDiligence) {
+      const diligence = data.diligenceScores[applicant.name] || 0;
+      score += diligence * 4;
+    }
+    if (prioritizeReason && applicant.reason1 && applicant.reason1.length >= 5) score += 2;
+    if (prioritizeNewbie && job.popular && !popularJobExperienced.has(applicant.name)) score += 3;
+    return score;
+  }
+
+  // 1지망부터 3지망까지 순서대로 처리
+  for (let level = 1; level <= 3; level++) {
+    const key = `choice${level}`;
+    const grouped = {};
+    data.applications.forEach(app => {
+      if (assigned.has(app.name)) return;
+      const target = app[key];
+      if (!target) return;
+      if (!grouped[target]) grouped[target] = [];
+      grouped[target].push(app);
+    });
+
+    Object.entries(grouped).forEach(([jobName, applicants]) => {
+      const job = data.jobs.find(j => j.name === jobName);
+      if (!job) return;
+      const remaining = job.capacity - assignments[jobName].length;
+      if (remaining <= 0) return;
+
+      if (applicants.length <= remaining) {
+        applicants.forEach(a => {
+          assignments[jobName].push(a.name);
+          assigned.set(a.name, { job: jobName, choiceLevel: level });
+        });
+      } else {
+        // 학생별 점수를 한 번만 계산한 뒤 정렬 (추첨 요소가 비교마다 다시 뽑히지 않도록)
+        const scored = applicants.map(a => ({ a, s: priorityScore(a, job) }));
+        scored.sort((x, y) => y.s - x.s);
+        scored.slice(0, remaining).forEach(({ a }) => {
+          assignments[jobName].push(a.name);
+          assigned.set(a.name, { job: jobName, choiceLevel: level });
+        });
+      }
+    });
+  }
+
+  // 미배정 학생들을 빈자리에 배정
+  const leftovers = data.applications.filter(a => !assigned.has(a.name));
+  const emptySlots = [];
+  data.jobs.forEach(j => {
+    const remaining = j.capacity - assignments[j.name].length;
+    for (let i = 0; i < remaining; i++) emptySlots.push(j.name);
+  });
+  for (let i = emptySlots.length - 1; i > 0; i--) {
+    const k = Math.floor(Math.random() * (i + 1));
+    [emptySlots[i], emptySlots[k]] = [emptySlots[k], emptySlots[i]];
+  }
+  leftovers.forEach((app, idx) => {
+    if (idx < emptySlots.length) {
+      const job = emptySlots[idx];
+      assignments[job].push(app.name);
+      assigned.set(app.name, { job, choiceLevel: 0 });
+    }
+  });
+
+  data.assignments = assignments;
+  data.assignedMeta = Object.fromEntries(assigned);
+  saveData();
+
+  // 원격 모드: 결과를 서버에 게시해 학생들도 볼 수 있게
+  if (role === 'teacher') {
+    try {
+      await srv('', 'PATCH', { assignments: data.assignments, assignedMeta: data.assignedMeta });
+    } catch (e) { serverErrorAlert(e); }
+  }
+
+  const matched1 = Array.from(assigned.values()).filter(v => v.choiceLevel === 1).length;
+  const matched2 = Array.from(assigned.values()).filter(v => v.choiceLevel === 2).length;
+  const matched3 = Array.from(assigned.values()).filter(v => v.choiceLevel === 3).length;
+  const matchedFill = Array.from(assigned.values()).filter(v => v.choiceLevel === 0).length;
+  const stillNone = data.applications.length - assigned.size;
+
+  let msg = `배정 완료! 1지망 ${matched1}명 · 2지망 ${matched2}명 · 3지망 ${matched3}명 · 빈자리 배정 ${matchedFill}명`;
+  if (stillNone > 0) msg += ` · 자리 부족 ${stillNone}명 (정원 초과)`;
+  showAssignmentMsg(msg, 'success');
+  renderTeacher();
+}
+
+function showAssignmentMsg(msg, type) {
+  const cls = type === 'success' ? 'success' : type === 'warn' ? '' : 'info';
+  document.getElementById('assignment-message').innerHTML = `<div class="alert ${cls}">${msg}</div>`;
+}
+
+// ============ 결과 내보내기 / 마감 ============
+function hasAssignments() {
+  return data.assignments && Object.keys(data.assignments).length > 0 &&
+    Object.values(data.assignments).some(arr => (arr || []).length > 0);
+}
+
+function exportResults() {
+  if (!hasAssignments()) {
+    alert('아직 배정 결과가 없어요. 먼저 배정을 실행해주세요.'); return;
+  }
+  let csv = '\uFEFF직업,학생,지망\n';
+  Object.entries(data.assignments).forEach(([job, students]) => {
+    (students || []).forEach(name => {
+      const meta = data.assignedMeta && data.assignedMeta[name];
+      const level = meta ? (meta.choiceLevel === 0 ? '빈자리' : `${meta.choiceLevel}지망`) : '';
+      csv += [csvCell(job), csvCell(name), csvCell(level)].join(',') + '\n';
+    });
+  });
+  downloadFile(csv, `직업배정_${data.month}.csv`, 'text/csv');
+}
+
+async function archiveMonth() {
+  if (!hasAssignments()) {
+    alert('아직 배정 결과가 없어요. 배정을 실행한 뒤에 마감해주세요.'); return;
+  }
+  if (!confirm('이번 달을 마감하고 다음 달 준비를 할까요?\n\n• 배정 결과는 기록에 보관됩니다\n• 학생 지원서는 초기화됩니다\n• 직업 목록과 성실도 점수는 그대로 유지됩니다\n\n(다음 달 배정 전에 성실도 점수를 다시 매겨주세요)')) return;
+  data.history.push({
+    month: data.month,
+    jobs: [...data.jobs],
+    assignments: { ...data.assignments },
+    diligenceScores: { ...data.diligenceScores },
+  });
+  data.applications = [];
+  data.assignments = {};
+  data.assignedMeta = {};
+  data.month = getCurrentMonth();
+  saveData();
+
+  if (role === 'teacher') {
+    try {
+      await srv('', 'PATCH', { applications: null, assignments: null, assignedMeta: null });
+      await srv('meta', 'PATCH', { month: data.month });
+    } catch (e) { serverErrorAlert(e); }
+  }
+
+  alert('이번 달이 마감되었어요!\n\n다음 달을 시작하기 전에:\n1. 학생들의 성실도 점수를 다시 매겨주세요\n2. 그 다음 학생들에게 지원 받으세요');
+  renderClassHeader();
+  renderTeacher();
+}
+
+function exportBackup() {
+  downloadFile(JSON.stringify(data, null, 2), `직업배정_백업_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
+}
+
+function importBackup(event) {
+  const file = event.target.files[0];
+  event.target.value = ''; // 같은 파일을 다시 선택해도 동작하도록 초기화
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    let imported;
+    try {
+      imported = JSON.parse(e.target.result);
+    } catch (err) { alert('파일을 읽을 수 없어요: ' + err.message); return; }
+    if (!imported || typeof imported !== 'object' || Array.isArray(imported) ||
+        !('jobs' in imported || 'applications' in imported || 'diligenceScores' in imported)) {
+      alert('이 앱의 백업 파일이 아닌 것 같아요. "전체 백업"으로 내려받은 JSON 파일을 선택해주세요.');
+      return;
+    }
+    if (!confirm('백업을 불러오면 현재 데이터를 덮어쓰게 됩니다. 진행할까요?')) return;
+    const pinHash = data.pinHash; // 현재 학급의 PIN은 유지
+    const classInfo = role === 'teacher' ? data.classInfo : null;
+    data = migrateData(imported);
+    data.pinHash = pinHash;
+    if (classInfo) data.classInfo = classInfo;
+    data.setupDone = true;
+    saveData();
+    if (role === 'teacher') {
+      try {
+        await srv('jobs', 'PUT', data.jobs);
+        if (hasAssignments()) await srv('', 'PATCH', { assignments: data.assignments, assignedMeta: data.assignedMeta });
+      } catch (err) { serverErrorAlert(err); }
+    }
+    renderClassHeader();
+    renderTeacher();
+    renderStudent();
+    alert('백업을 성공적으로 불러왔어요.');
+  };
+  reader.readAsText(file);
+}
+
+async function resetAll() {
+  if (!confirm('정말 모든 데이터를 삭제할까요? 이 작업은 되돌릴 수 없어요.')) return;
+  if (!confirm('정말 정말로요?')) return;
+  if (role === 'teacher') {
+    try {
+      await srv('', 'PATCH', { jobs: null, applications: null, assignments: null, assignedMeta: null });
+    } catch (e) { serverErrorAlert(e); }
+    const pinHash = data.pinHash;
+    const classInfo = data.classInfo;
+    data = freshData();
+    data.pinHash = pinHash;
+    data.classInfo = classInfo;
+    data.setupDone = true;
+    saveData();
+  } else {
+    localStorage.removeItem(STORAGE_KEY);
+    data = loadLocalData();
+  }
+  renderClassHeader();
+  renderTeacher();
+  renderStudent();
+}
+
+function downloadFile(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============ 렌더링 ============
+function renderStudent() {
+  const isRemoteStudent = role === 'student';
+  const jobs = isRemoteStudent ? studentCache.jobs : (data ? data.jobs : []);
+  const month = isRemoteStudent ? ((studentCache.meta && studentCache.meta.month) || '') : (data ? data.month : '');
+  const appliedNames = isRemoteStudent
+    ? studentCache.appliedKeys
+    : (data ? data.applications.map(a => a.name) : []);
+
+  // 직업 드롭다운 채우기
+  ['s-choice1', 's-choice2', 's-choice3'].forEach(id => {
+    const sel = document.getElementById(id);
+    const current = sel.value;
+    sel.innerHTML = '<option value="">선택해주세요</option>' +
+      jobs.map(j => `<option value="${escapeHtml(j.name)}">${escapeHtml(j.name)} (${j.capacity}명)${j.popular ? ' 🌟' : ''}</option>`).join('');
+    sel.value = current;
+  });
+
+  // 통계
+  const totalCap = jobs.reduce((s, j) => s + j.capacity, 0);
+  document.getElementById('student-stats').innerHTML = `
+    <div class="stat"><div class="stat-label">이번 달</div><div class="stat-value">${escapeHtml(month)}</div></div>
+    <div class="stat"><div class="stat-label">전체 직업</div><div class="stat-value">${jobs.length}개</div></div>
+    <div class="stat"><div class="stat-label">모집 인원</div><div class="stat-value">${totalCap}명</div></div>
+    <div class="stat"><div class="stat-label">지원한 친구</div><div class="stat-value">${appliedNames.length}명</div></div>
+  `;
+
+  // 지원자 명단 (이름만)
+  if (appliedNames.length === 0) {
+    document.getElementById('student-applied-list').innerHTML = '<div class="empty">아직 아무도 지원하지 않았어요. 첫 번째로 지원해보세요!</div>';
+  } else {
+    document.getElementById('student-applied-list').innerHTML =
+      '<div style="margin-top: 8px; font-size: 13px; color: var(--muted);">이미 지원한 친구들:</div>' +
+      '<div style="margin-top: 8px;">' +
+      appliedNames.map(n => `<span class="student-pill">${escapeHtml(n)}</span>`).join('') +
+      '</div>';
+  }
+
+  // 배정 결과 (학생 화면)
+  const assignments = isRemoteStudent ? studentCache.assignments : (data ? data.assignments : null);
+  const assignedMeta = (isRemoteStudent ? studentCache.assignedMeta : (data ? data.assignedMeta : null)) || {};
+  const target = document.getElementById('student-result-content');
+  if (!assignments || Object.keys(assignments).length === 0 ||
+      Object.values(assignments).every(arr => (arr || []).length === 0)) {
+    target.innerHTML = '<div class="empty">아직 배정 결과가 없어요.</div>';
+  } else {
+    const saved = getSavedStudent() || {};
+    let html = '<div class="result-grid">';
+    jobs.forEach(j => {
+      const students = assignments[j.name] || [];
+      html += `<div class="result-job">
+        <h4>${escapeHtml(j.name)}${j.popular ? ' 🌟' : ''}<span class="count">${students.length}/${j.capacity}명</span></h4>
+        <div>`;
+      students.forEach(s => {
+        const isMe = saved.myKey && sanitizeKey(s) === saved.myKey;
+        html += `<span class="student-pill ${isMe ? 'me' : ''}">${escapeHtml(s)}${isMe ? ' 🙋' : ''}</span>`;
+      });
+      if (students.length === 0) html += '<span style="color: var(--muted); font-size: 12px;">배정된 친구 없음</span>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+    target.innerHTML = html;
+  }
+}
+
+function renderTeacher() {
+  if (!data) return;
+  document.getElementById('class-name-input').value = (data.classInfo && data.classInfo.className) || '';
+  document.getElementById('teacher-name-input').value = (data.classInfo && data.classInfo.teacherName) || '';
+
+  renderDiligenceTable();
+
+  // 직업 목록
+  if (data.jobs.length === 0) {
+    document.getElementById('job-list').innerHTML = '<div class="empty">직업을 추가하거나 "예시 직업 불러오기"를 눌러보세요.</div>';
+  } else {
+    document.getElementById('job-list').innerHTML = data.jobs.map((j, idx) => `
+      <div class="job-chip">
+        <span>${escapeHtml(j.name)}${j.popular ? ' 🌟' : ''}</span>
+        <span>
+          <span class="cap">${j.capacity}명</span>
+          <button class="btn-danger" onclick="removeJob(${idx})" style="margin-left: 6px;">✕</button>
+        </span>
+      </div>
+    `).join('');
+  }
+
+  const totalCap = data.jobs.reduce((s, j) => s + j.capacity, 0);
+  const diff = totalCap - data.applications.length;
+  let capacityMsg = `총 모집 인원: <strong>${totalCap}명</strong> · 지원자: <strong>${data.applications.length}명</strong>`;
+  if (data.applications.length > 0) {
+    if (diff > 0) capacityMsg += ` · 빈자리 ${diff}개 남음`;
+    else if (diff < 0) capacityMsg += ` · ⚠️ 정원보다 ${-diff}명 많아요`;
+    else capacityMsg += ` · ✅ 딱 맞아요!`;
+  }
+  document.getElementById('capacity-info').innerHTML = capacityMsg;
+
+  // 지원 현황 요약
+  const counts = {};
+  data.jobs.forEach(j => counts[j.name] = { c1: 0, c2: 0, c3: 0 });
+  data.applications.forEach(a => {
+    if (counts[a.choice1]) counts[a.choice1].c1++;
+    if (a.choice2 && counts[a.choice2]) counts[a.choice2].c2++;
+    if (a.choice3 && counts[a.choice3]) counts[a.choice3].c3++;
+  });
+
+  if (data.applications.length === 0) {
+    document.getElementById('applications-summary').innerHTML = '';
+    document.getElementById('applications-table-wrap').innerHTML = '<div class="empty">아직 지원자가 없어요.</div>';
+  } else {
+    let summary = '<div style="margin: 8px 0 16px;"><div style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">직업별 지원자 수 (1지망 / 정원)</div>';
+    summary += '<div class="result-grid">';
+    data.jobs.forEach(j => {
+      const c = counts[j.name];
+      const pct = Math.min(100, (c.c1 / j.capacity) * 100);
+      const status = c.c1 > j.capacity ? 'var(--accent)' : c.c1 === j.capacity ? 'var(--green)' : c.c1 === 0 ? 'var(--muted)' : 'var(--yellow)';
+      summary += `
+        <div class="result-job">
+          <h4>${escapeHtml(j.name)}${j.popular ? ' 🌟' : ''}<span class="count">${c.c1}/${j.capacity}</span></h4>
+          <div class="progress-bar"><div class="progress-bar-fill" style="width: ${pct}%; background: ${status};"></div></div>
+          <div style="font-size: 11px; color: var(--muted); margin-top: 6px;">2지망 ${c.c2}명 · 3지망 ${c.c3}명</div>
+        </div>
+      `;
+    });
+    summary += '</div></div>';
+    document.getElementById('applications-summary').innerHTML = summary;
+
+    let table = '<table class="applications-table"><thead><tr><th>이름</th><th>성실도</th><th>1지망</th><th>2지망</th><th>3지망</th><th>지원 이유</th><th></th></tr></thead><tbody>';
+    data.applications.forEach((a, idx) => {
+      const exp = data.history.length > 0 ? popularExperiencedTag(a.name) : '';
+      const score = data.diligenceScores[a.name];
+      let scoreCell;
+      if (score === undefined || score === null) {
+        scoreCell = '<span style="color: var(--muted); font-size: 11px;">미등록</span>';
+      } else if (score >= 4) {
+        scoreCell = `<span class="score-stars">★${score}</span> <span class="priority-tag">우선</span>`;
+      } else {
+        scoreCell = `<span class="score-stars" style="color: var(--muted);">★${score}</span>`;
+      }
+      table += `
+        <tr>
+          <td><strong>${escapeHtml(a.name)}</strong>${exp}</td>
+          <td>${scoreCell}</td>
+          <td><span class="badge badge-1">${escapeHtml(a.choice1)}</span></td>
+          <td>${a.choice2 ? `<span class="badge badge-2">${escapeHtml(a.choice2)}</span>` : '<span class="badge badge-none">-</span>'}</td>
+          <td>${a.choice3 ? `<span class="badge badge-3">${escapeHtml(a.choice3)}</span>` : '<span class="badge badge-none">-</span>'}</td>
+          <td class="reason-cell">${escapeHtml(a.reason1 || '-')}</td>
+          <td><button class="btn-danger" onclick="removeApplication(${idx})">삭제</button></td>
+        </tr>
+      `;
+    });
+    table += '</tbody></table>';
+    document.getElementById('applications-table-wrap').innerHTML = table;
+  }
+
+  // 배정 결과
+  if (!hasAssignments()) {
+    document.getElementById('result-stats').innerHTML = '';
+    document.getElementById('result-content').innerHTML = '<div class="empty">아직 배정 결과가 없어요. 위에서 "배정 실행하기"를 눌러주세요.</div>';
+  } else {
+    const meta = data.assignedMeta || {};
+    const m1 = Object.values(meta).filter(v => v.choiceLevel === 1).length;
+    const m2 = Object.values(meta).filter(v => v.choiceLevel === 2).length;
+    const m3 = Object.values(meta).filter(v => v.choiceLevel === 3).length;
+    const mFill = Object.values(meta).filter(v => v.choiceLevel === 0).length;
+    const total = m1 + m2 + m3 + mFill;
+    document.getElementById('result-stats').innerHTML = `
+      <div class="stat"><div class="stat-label">1지망 배정</div><div class="stat-value" style="color: var(--accent);">${m1}명</div></div>
+      <div class="stat"><div class="stat-label">2지망 배정</div><div class="stat-value" style="color: var(--green);">${m2}명</div></div>
+      <div class="stat"><div class="stat-label">3지망 배정</div><div class="stat-value" style="color: var(--blue);">${m3}명</div></div>
+      <div class="stat"><div class="stat-label">빈자리 채움</div><div class="stat-value" style="color: var(--muted);">${mFill}명</div></div>
+      <div class="stat"><div class="stat-label">1지망 매칭률</div><div class="stat-value">${total > 0 ? Math.round(m1/total*100) : 0}%</div></div>
+    `;
+
+    let html = '<div class="result-grid">';
+    data.jobs.forEach(j => {
+      const students = data.assignments[j.name] || [];
+      html += `<div class="result-job">
+        <h4>${escapeHtml(j.name)}${j.popular ? ' 🌟' : ''}<span class="count">${students.length}/${j.capacity}명</span></h4>
+        <div>`;
+      students.forEach(s => {
+        const m = meta[s];
+        const cls = m ? (m.choiceLevel === 0 ? 'choice-fill' : `choice-${m.choiceLevel}`) : '';
+        const label = m && m.choiceLevel === 0 ? ' (빈자리)' : m ? ` (${m.choiceLevel}지망)` : '';
+        html += `<span class="student-pill ${cls}">${escapeHtml(s)}<small style="color: var(--muted); margin-left: 4px;">${label}</small></span>`;
+      });
+      if (students.length === 0) html += '<span style="color: var(--muted); font-size: 12px;">아직 배정 안 됨</span>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+    document.getElementById('result-content').innerHTML = html;
+  }
+}
+
+async function removeApplication(idx) {
+  const app = data.applications[idx];
+  if (!app) return;
+  if (!confirm(`"${app.name}"의 지원서를 삭제할까요?`)) return;
+  if (role === 'teacher' && app.key) {
+    try { await srv('applications/' + encodeURIComponent(app.key), 'DELETE'); }
+    catch (e) { serverErrorAlert(e); return; }
+  }
+  data.applications.splice(idx, 1);
+  saveData();
+  renderTeacher();
+}
+
+function popularExperiencedTag(name) {
+  if (data.history.length === 0) return '';
+  const last = data.history[data.history.length - 1];
+  for (const [job, students] of Object.entries(last.assignments || {})) {
+    const jobInfo = (last.jobs || []).find(j => j.name === job);
+    if (jobInfo && jobInfo.popular && (students || []).includes(name)) {
+      return ' <span class="tag experienced">지난달 인기직</span>';
+    }
+  }
+  return '';
+}
+
+// ============ 초기화 ============
+function init() {
+  if (!REMOTE) {
+    // 로컬 모드: 기존 방식 (한 기기에서 탭 전환)
+    data = loadLocalData();
+    role = 'local';
+    enterApp();
+    if (!data.setupDone) {
+      document.getElementById('setup-modal').classList.remove('hidden');
+    }
+    return;
+  }
+
+  // 원격 모드: 역할 선택 화면
+  renderContinueList();
+  document.getElementById('entry-modal').classList.remove('hidden');
+
+  // ?code=ABC123 링크로 들어온 학생은 코드가 미리 채워진 학생 화면으로
+  const params = new URLSearchParams(location.search);
+  const urlCode = (params.get('code') || '').trim().toUpperCase();
+  if (urlCode) {
+    document.getElementById('entry-student-code').value = urlCode;
+    showEntryPanel('student');
+  } else {
+    showEntryPanel('role');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
