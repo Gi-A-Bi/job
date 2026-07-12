@@ -77,7 +77,35 @@ function doPost(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+// 데이터를 바꾸는 요청은 잠금(Lock) 안에서 실행 — 반 전체가 동시에 제출해도 안전
+const MUTATING_ACTIONS = {
+  createClass: 1, saveJobs: 1, saveStudents: 1, setStudentDiligence: 1, setDiligence: 1,
+  openNextRound: 1, publishRound: 1, reopenRound: 1, submitApplication: 1,
+  deleteApplication: 1, runAssignment: 1,
+};
+
 function route_(action, p) {
+  if (MUTATING_ACTIONS[action]) {
+    return withLock_(function () { return dispatch_(action, p); });
+  }
+  return dispatch_(action, p);
+}
+
+function withLock_(fn) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+  } catch (e) {
+    throw new Error('지금 접속하는 친구가 많아요. 몇 초 뒤에 다시 시도해 주세요.');
+  }
+  try {
+    return fn();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function dispatch_(action, p) {
   switch (action) {
     case 'createClass':         return createClass_(p);
     case 'teacherLogin':        return teacherLogin_(p);
@@ -282,7 +310,7 @@ function submitApplication_(p) {
 
   const students = studentsOf_(cls.classCode);
   const me = students.find(function (s) {
-    return String(s.number) === number && s.name === name;
+    return sameNumber_(s.number, number) && s.name === name;
   });
   if (!me) throw new Error('명단에서 찾을 수 없어요. 번호와 이름을 다시 확인해 주세요.');
 
@@ -306,7 +334,7 @@ function getMyApplication_(p) {
   const round  = Number(p.round) || cls.currentRound;
   const mine = readAll_(SHEET_APPLICATIONS).find(function (a) {
     return a.classCode === cls.classCode && Number(a.round) === round &&
-           String(a.number) === number && a.studentName === name;
+           sameNumber_(a.number, number) && a.studentName === name;
   });
   return { ok: true, application: mine || null };
 }
@@ -381,7 +409,7 @@ function runAssignment_(p) {
     s += (dp === undefined ? 4 : dp);   // 미설정은 '보통'(4점)
     if (!heldPopular[studentId]) s += BONUS_NEW_POPULAR;
     if (app && String(app.reason || '').trim().length >= 5) s += BONUS_REASON;
-    s += Math.random() * (RANDOM_MAX + 1);
+    s += Math.random() * RANDOM_MAX;
     return s;
   }
 
@@ -486,7 +514,7 @@ function getMyAssignment_(p) {
   const name   = String(p.name || '').trim();
   const mine = readAll_(SHEET_ASSIGNMENTS).find(function (a) {
     return a.classCode === cls.classCode && Number(a.round) === round &&
-           String(a.number) === number && a.studentName === name;
+           sameNumber_(a.number, number) && a.studentName === name;
   });
   return { ok: true, assignment: mine || null, published: true, round: round };
 }
@@ -501,7 +529,7 @@ function getMyResults_(p) {
   publishedRoundsOf_(cls.classCode).forEach(function (r) { pubRounds[r] = true; });
   const mine = readAll_(SHEET_ASSIGNMENTS).filter(function (a) {
     return a.classCode === cls.classCode && pubRounds[Number(a.round)] &&
-           String(a.number) === number && a.studentName === name;
+           sameNumber_(a.number, number) && a.studentName === name;
   }).map(function (a) {
     return { round: Number(a.round), jobName: a.jobName, choiceLevel: a.choiceLevel };
   }).sort(function (x, y) { return y.round - x.round; });
@@ -762,6 +790,16 @@ function studentsOf_(classCode) {
 
 function truthy_(v) {
   return v === true || v === 'Y' || v === 'y' || v === 1 || v === '1' || v === 'TRUE' || v === 'true';
+}
+
+// 번호 비교: "1"과 "01", 숫자 1을 같은 번호로 취급 (시트에 숫자로 저장돼도 매칭)
+function sameNumber_(a, b) {
+  var x = String(a == null ? '' : a).trim();
+  var y = String(b == null ? '' : b).trim();
+  if (x === y) return true;
+  if (x === '' || y === '') return false;
+  var nx = Number(x), ny = Number(y);
+  return !isNaN(nx) && !isNaN(ny) && nx === ny;
 }
 
 function shuffle_(arr) {

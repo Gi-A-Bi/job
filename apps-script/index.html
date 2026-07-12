@@ -894,7 +894,7 @@ function renderApplications(){
   html+=`<p class="hint" style="margin:0 0 12px">${roundLabel(appsRoundNow())} 지원 현황이에요.</p>`;
   if(state.applications.length){
     html+=`<p class="hint" style="margin:0 0 12px">학생 이름 옆에서 <b>성실도</b>를 정해주세요. 지난 활동을 잘한 학생일수록 1지망에 배정될 확률이 높아져요.</p>`;
-    html+=state.applications.map(a=>{
+    html+=state.applications.map((a,idx)=>{
       const d=dilOf(a.studentId);
       return `
       <div class="list-row" style="flex-wrap:wrap">
@@ -905,11 +905,11 @@ function renderApplications(){
           ${a.choice3?`<span class="ch"><b>3</b>${esc(jobName(a.choice3))}</span>`:''}
         </div>
         <div class="dil">
-          <button class="good ${d==='잘함'?'on':''}" onclick="setAppDil('${a.studentId}','잘함')">잘함</button>
-          <button class="mid ${d==='보통'?'on':''}" onclick="setAppDil('${a.studentId}','보통')">보통</button>
-          <button class="low ${d==='아쉬움'?'on':''}" onclick="setAppDil('${a.studentId}','아쉬움')">아쉬움</button>
+          <button class="good ${d==='잘함'?'on':''}" onclick="setAppDil(${idx},'잘함')">잘함</button>
+          <button class="mid ${d==='보통'?'on':''}" onclick="setAppDil(${idx},'보통')">보통</button>
+          <button class="low ${d==='아쉬움'?'on':''}" onclick="setAppDil(${idx},'아쉬움')">아쉬움</button>
         </div>
-        <button class="del-btn" onclick="delApp('${a.studentId}')"><span class="ti ti-trash"></span></button>
+        <button class="del-btn" onclick="delApp(${idx})"><span class="ti ti-trash"></span></button>
         ${a.reason?`<div class="reason">💬 ${esc(a.reason)}</div>`:''}
       </div>`;}).join('');
   } else {
@@ -920,15 +920,19 @@ function renderApplications(){
   }
   box.innerHTML=html;
 }
-async function setAppDil(studentId,v){
+async function setAppDil(idx,v){
+  const a=state.applications[idx]; if(!a) return;
+  const studentId=a.studentId;
   const s=state.students.find(x=>x.studentId===studentId);
   if(s) s.diligence=v;       // 화면 즉시 반영
   renderApplications();
   try{ await api('setStudentDiligence',Object.assign(tdata(),{items:[{studentId,diligence:v}]})); }
   catch(e){ toast(e.message,true); }
 }
-async function delApp(studentId){
-  try{ await api('deleteApplication',Object.assign(tdata(),{studentId,round:appsRoundNow()})); toast('지원을 삭제했어요.'); loadApplications(); }
+async function delApp(idx){
+  const a=state.applications[idx]; if(!a) return;
+  if(!confirm(a.studentName+' 학생의 지원을 삭제할까요?')) return;
+  try{ await api('deleteApplication',Object.assign(tdata(),{studentId:a.studentId,round:appsRoundNow()})); toast('지원을 삭제했어요.'); loadApplications(); }
   catch(e){ toast(e.message,true); }
 }
 
@@ -1101,7 +1105,6 @@ function renderRoundChooser(){
   document.getElementById('s-round-who').textContent=state.student.name+' 어린이';
   const open=(state.student.openRounds||[]).slice().sort((a,b)=>a-b);
   const results=state.student.myResults||[];
-  const appliedSet={};  // 이미 신청한 회차 표시는 굳이 안 함(서버 호출 절약)
   let html='';
   if(open.length){
     html+='<p class="lab" style="font-weight:700;margin-bottom:2px">지원할 회차</p>';
@@ -1210,6 +1213,14 @@ document.getElementById('t-code').addEventListener('input',e=>e.target.value=e.t
 // =====================================================================
 // 데모(미리보기) 모드 — 배포 전에도 화면을 둘러볼 수 있게
 // =====================================================================
+// 백엔드 sameNumber_와 동일: "1"과 "01"을 같은 번호로 취급
+function sameNum(a,b){
+  const x=String(a==null?'':a).trim(), y=String(b==null?'':b).trim();
+  if(x===y) return true;
+  if(x===''||y==='') return false;
+  const nx=Number(x), ny=Number(y);
+  return !isNaN(nx)&&!isNaN(ny)&&nx===ny;
+}
 function mockApi(action,p){
   const db=mockApi._db||(mockApi._db=seedDemo());
   const wait=v=>new Promise(res=>setTimeout(()=>res(v),180));
@@ -1233,13 +1244,13 @@ function mockApi(action,p){
     case 'submitApplication':{
       const round=R();
       if(cls.status[round]!=='open') return wait(Promise.reject(new Error('지금은 그 회차에 신청할 수 없어요. 열려 있는 회차를 골라 주세요.')));
-      const me=db.students.find(s=>String(s.number)===String(p.number)&&s.name===p.name);
+      const me=db.students.find(s=>sameNum(s.number,p.number)&&s.name===p.name);
       if(!me) return wait(Promise.reject(new Error('명단에서 찾을 수 없어요. 번호와 이름을 확인해 주세요.')));
       db.apps=db.apps.filter(a=>!(a.studentId===me.studentId&&a.round===round));
       db.apps.push({classCode:cls.classCode,round:round,studentId:me.studentId,number:String(p.number),studentName:p.name,choice1:p.choice1,choice2:p.choice2,choice3:p.choice3,reason:p.reason});
       return wait(ok({}));
     }
-    case 'getMyApplication':{ const round=R(); const a=db.apps.find(a=>a.round===round&&String(a.number)===String(p.number)&&a.studentName===p.name); return wait(ok({application:a||null})); }
+    case 'getMyApplication':{ const round=R(); const a=db.apps.find(a=>a.round===round&&sameNum(a.number,p.number)&&a.studentName===p.name); return wait(ok({application:a||null})); }
     case 'listApplications':{ const round=R(); return wait(ok({round:round,applications:db.apps.filter(a=>a.round===round)})); }
     case 'deleteApplication':{ const round=R(); db.apps=db.apps.filter(a=>!(a.studentId===p.studentId&&a.round===round)); return wait(ok({})); }
     case 'runAssignment':{
@@ -1249,8 +1260,8 @@ function mockApi(action,p){
       return wait(ok({round:round,assignments:db.assigns.filter(a=>a.round===round),leftover:Math.max(0,db.students.length-db.jobs.reduce((n,j)=>n+(j.capacity||1),0))}));
     }
     case 'listAssignments':{ const round=R(); const st=cls.status[round]||'open'; return wait(ok({round:round,currentRound:cls.currentRound,roundStatus:st,published:st==='published',rounds:rounds(),assignments:db.assigns.filter(a=>a.round===round)})); }
-    case 'getMyAssignment':{ const round=R(); if(cls.status[round]!=='published') return wait(ok({assignment:null,published:false,round:round})); const a=db.assigns.find(a=>a.round===round&&String(a.number)===String(p.number)&&a.studentName===p.name); return wait(ok({assignment:a||null,published:true,round:round})); }
-    case 'getMyResults':{ const pub={}; pubR().forEach(r=>pub[r]=true); const mine=db.assigns.filter(a=>pub[a.round]&&String(a.number)===String(p.number)&&a.studentName===p.name).map(a=>({round:a.round,jobName:a.jobName,choiceLevel:a.choiceLevel})).sort((x,y)=>y.round-x.round); return wait(ok({results:mine,openRounds:openR()})); }
+    case 'getMyAssignment':{ const round=R(); if(cls.status[round]!=='published') return wait(ok({assignment:null,published:false,round:round})); const a=db.assigns.find(a=>a.round===round&&sameNum(a.number,p.number)&&a.studentName===p.name); return wait(ok({assignment:a||null,published:true,round:round})); }
+    case 'getMyResults':{ const pub={}; pubR().forEach(r=>pub[r]=true); const mine=db.assigns.filter(a=>pub[a.round]&&sameNum(a.number,p.number)&&a.studentName===p.name).map(a=>({round:a.round,jobName:a.jobName,choiceLevel:a.choiceLevel})).sort((x,y)=>y.round-x.round); return wait(ok({results:mine,openRounds:openR()})); }
     case 'openNextRound': cls.currentRound+=1; cls.status[cls.currentRound]='open'; return wait(ok({currentRound:cls.currentRound,rounds:rounds()}));
     case 'publishRound':{ const round=R(); const has=db.assigns.some(a=>a.round===round); if(!has) return wait(Promise.reject(new Error('먼저 자동 배정을 실행해 주세요.'))); cls.status[round]='published'; return wait(ok({round:round,rounds:rounds()})); }
     case 'reopenRound':{ const round=R(); cls.status[round]='open'; return wait(ok({round:round,rounds:rounds()})); }
