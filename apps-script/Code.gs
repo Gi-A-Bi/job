@@ -685,6 +685,30 @@ function resetAllData() {
   return '초기화 완료 — 같은 주소 그대로 새 회차 모델로 시작할 수 있어요.';
 }
 
+/**
+ * 🧹 잘못된 회차 정리 — Rounds/Applications/Assignments 시트에서
+ * 회차 값이 이상한(날짜·음수·소수 등) 행을 삭제합니다.
+ * "-2209105671999회차" 같은 유령 회차가 보일 때 한 번 실행하세요.
+ * 사용법: 편집기 상단 함수 목록에서 'cleanupBadRounds' 선택 → [실행].
+ * 정상 회차(1, 2, 3 …)와 그 지원/배정 기록은 그대로 유지됩니다.
+ */
+function cleanupBadRounds() {
+  var removed = { Rounds: 0, Applications: 0, Assignments: 0 };
+  [
+    [SHEET_ROUNDS, 'Rounds'],
+    [SHEET_APPLICATIONS, 'Applications'],
+    [SHEET_ASSIGNMENTS, 'Assignments'],
+  ].forEach(function (pair) {
+    deleteRowsWhere_(pair[0], function (r) {
+      if (validRound_(r.round)) return false;
+      removed[pair[1]]++;
+      return true;
+    });
+  });
+  return '정리 완료 — 잘못된 회차 행 삭제: 회차 ' + removed.Rounds +
+    '개 · 지원 ' + removed.Applications + '개 · 배정 ' + removed.Assignments + '개';
+}
+
 function readAll_(name) {
   var sheet = getSheet_(name);
   var data = sheet.getDataRange().getValues();
@@ -723,9 +747,16 @@ function getClassRow_(classCode) {
 }
 
 // ===== 회차별 상태 (Rounds 시트) =====
+// 올바른 회차 값인지 검사 (1 이상의 정수). 시트에 날짜 등 이상한 값이 섞여
+// -2209105671999 같은 유령 회차가 생기는 것을 막는다.
+function validRound_(v) {
+  var n = Number(v);
+  return isFinite(n) && n >= 1 && n === Math.floor(n);
+}
+
 function roundsOf_(classCode) {
   return readAll_(SHEET_ROUNDS)
-    .filter(function (r) { return r.classCode === classCode; })
+    .filter(function (r) { return r.classCode === classCode && validRound_(r.round); })
     .map(function (r) { return { round: Number(r.round), status: r.status || ST_OPEN }; })
     .sort(function (a, b) { return a.round - b.round; });
 }
