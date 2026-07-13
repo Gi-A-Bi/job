@@ -728,6 +728,96 @@ function cleanupBadRounds() {
     '개 · 지원 ' + removed.Applications + '개 · 배정 ' + removed.Assignments + '개';
 }
 
+/**
+ * 🎓 예시(안내용) 학급 만들기 — 선생님 연수·소개용
+ * 편집기 상단 함수 목록에서 'seedExampleClass' 선택 → [실행].
+ * 직업·학생 명단·지원·성실도·자동배정(공개)까지 모두 채워진 예시 학급을 만듭니다.
+ *   · 학급 코드: SAMPLE   · 관리 비밀번호: 1234
+ *   · 학생 로그인 예: 번호 1 / 이름 김하늘
+ * 다시 실행하면 예시 데이터가 처음 상태로 새로 채워집니다.
+ * 코드가 SAMPLE인 학급만 건드리므로 실제 학급 데이터에는 영향이 없어요.
+ */
+function seedExampleClass() {
+  var code = 'SAMPLE';
+  var pw = '1234';
+  var className = '(예시) 3학년 1반';
+
+  // 기존 예시 데이터 정리 (SAMPLE 학급만)
+  [SHEET_CLASSES, SHEET_JOBS, SHEET_STUDENTS, SHEET_APPLICATIONS, SHEET_ASSIGNMENTS, SHEET_ROUNDS].forEach(function (name) {
+    deleteRowsWhere_(name, function (r) { return String(r.classCode).toUpperCase() === code; });
+  });
+
+  // 학급 + 1회차(열림)
+  getSheet_(SHEET_CLASSES).appendRow([code, className, hashPassword_(code, pw), 1, ST_OPEN, new Date()]);
+  setRoundStatus_(code, 1, ST_OPEN);
+
+  // 직업
+  var jobDefs = [
+    ['칠판 지킴이', 'ti-blackboard', 1, true,  '쉬는 시간마다 칠판을 깨끗이 지워요'],
+    ['우유 당번',   'ti-bottle',     2, false, '우유를 받아와 친구들에게 나눠줘요'],
+    ['화분 정원사', 'ti-plant-2',    1, false, '교실 화분에 물을 주고 돌봐요'],
+    ['책 정리왕',   'ti-books',      1, false, '학급문고 책을 가지런히 정리해요'],
+    ['알림 도우미', 'ti-notebook',   1, true,  '알림장과 가정통신문을 챙겨요'],
+    ['분리수거 대장','ti-recycle',   2, false, '쓰레기를 종류별로 분리수거해요'],
+  ];
+  var jobsSheet = getSheet_(SHEET_JOBS);
+  var jobs = [];
+  jobDefs.forEach(function (d, i) {
+    var jobId = 'job_' + code + '_' + i;
+    jobsSheet.appendRow([code, jobId, d[0], d[1], d[2], d[3] ? 'Y' : '', i, d[4]]);
+    jobs.push({ jobId: jobId, jobName: d[0] });
+  });
+  function jid(name) {
+    if (!name) return '';
+    for (var i = 0; i < jobs.length; i++) if (jobs[i].jobName === name) return jobs[i].jobId;
+    return '';
+  }
+
+  // 학생 명단 + 성실도
+  var studentDefs = [
+    ['1', '김하늘', '잘함'],   ['2', '이바다', '보통'],
+    ['3', '박송이', '잘함'],   ['4', '최여름', ''],
+    ['5', '정겨울', '아쉬움'], ['6', '한가람', '보통'],
+    ['7', '오나무', '잘함'],   ['8', '윤보라', ''],
+  ];
+  var stuSheet = getSheet_(SHEET_STUDENTS);
+  var students = {};
+  studentDefs.forEach(function (d) {
+    var sid = 'stu_' + code + '_' + d[0] + '_' + d[1];
+    stuSheet.appendRow([code, sid, d[0], d[1], new Date(), d[2]]);
+    students[d[0]] = { studentId: sid, number: d[0], name: d[1] };
+  });
+
+  // 지원 (1회차)
+  var appDefs = [
+    ['1', ['칠판 지킴이', '알림 도우미', '책 정리왕'], '칠판을 깨끗하게 지우는 걸 좋아해요'],
+    ['2', ['우유 당번', '분리수거 대장', ''],          '친구들에게 우유를 나눠주고 싶어요'],
+    ['3', ['칠판 지킴이', '화분 정원사', ''],          '식물도 좋아하고 칠판도 잘 지워요'],
+    ['4', ['알림 도우미', '책 정리왕', '우유 당번'],   ''],
+    ['5', ['분리수거 대장', '우유 당번', ''],          '재활용 방법을 잘 알아요'],
+    ['6', ['화분 정원사', '칠판 지킴이', ''],          '매일 물을 잊지 않고 줄 수 있어요'],
+    ['7', ['우유 당번', '알림 도우미', ''],            '꼼꼼하게 잘 챙길 수 있어요'],
+    ['8', ['책 정리왕', '분리수거 대장', ''],          '책 정리를 좋아해요'],
+  ];
+  var appSheet = getSheet_(SHEET_APPLICATIONS);
+  appDefs.forEach(function (a) {
+    var s = students[a[0]];
+    appSheet.appendRow([code, 1, s.studentId, s.number, s.name,
+      jid(a[1][0]), jid(a[1][1]), jid(a[1][2]), a[2], new Date()]);
+  });
+
+  // 자동 배정 실행 후 학생에게 공개
+  runAssignment_({ classCode: code, password: pw, round: 1 });
+  publishRound_({ classCode: code, password: pw, round: 1 });
+
+  return '예시 학급을 만들었어요! 🎓\n\n' +
+    '· 학급 코드: ' + code + '\n' +
+    '· 관리 비밀번호: ' + pw + '\n' +
+    '· 학생 로그인 예시: 번호 1, 이름 김하늘\n\n' +
+    '선생님용은 첫 화면 → 선생님 → "학급 관리"에서 코드+비밀번호로,\n' +
+    '학생용은 첫 화면 → 학생 → 코드 입력 후 번호/이름으로 들어가면 돼요.';
+}
+
 function readAll_(name) {
   var sheet = getSheet_(name);
   var data = sheet.getDataRange().getValues();
