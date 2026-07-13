@@ -1099,16 +1099,26 @@ async function loadStudentRounds(){
   let results=[];
   try{ const rr=await api('getMyResults',{classCode:state.student.classCode,number:state.student.number,name:state.student.name}); results=rr.results||[]; }catch(_){}
   state.student.myResults=results;
+  let applied=[];
+  try{ const ar=await api('getMyAppliedRounds',{classCode:state.student.classCode,number:state.student.number,name:state.student.name}); applied=ar.rounds||[]; }catch(_){}
+  state.student.appliedRounds=applied;
   renderRoundChooser();
 }
 function renderRoundChooser(){
   document.getElementById('s-round-who').textContent=state.student.name+' 어린이';
   const open=(state.student.openRounds||[]).slice().sort((a,b)=>a-b);
   const results=state.student.myResults||[];
+  const applied=state.student.appliedRounds||[];
   let html='';
   if(open.length){
     html+='<p class="lab" style="font-weight:700;margin-bottom:2px">지원할 회차</p>';
-    html+=open.map(rn=>`<button class="btn btn-mint btn-block btn-lg mt-s" onclick="chooseApplyRound(${rn})"><span class="ti ti-pencil"></span> ${roundLabel(rn)} 직업 신청하기</button>`).join('');
+    html+=open.map(rn=>{
+      const done=applied.indexOf(rn)>=0;
+      if(done){
+        return `<button class="btn btn-ghost btn-block btn-lg mt-s" onclick="chooseApplyRound(${rn})"><span class="ti ti-circle-check"></span> ${roundLabel(rn)} 신청 완료 — 확인하기</button>`;
+      }
+      return `<button class="btn btn-mint btn-block btn-lg mt-s" onclick="chooseApplyRound(${rn})"><span class="ti ti-pencil"></span> ${roundLabel(rn)} 직업 신청하기</button>`;
+    }).join('');
   } else {
     html+='<div class="empty"><div class="ic"><span class="ti ti-door-off"></span></div><p>지금은 열린 회차가 없어요.<br>선생님이 회차를 열면 신청할 수 있어요.</p></div>';
   }
@@ -1123,15 +1133,30 @@ async function chooseApplyRound(rn){
   state.picks=[null,null,null];
   const reason=document.getElementById('s-reason'); if(reason) reason.value='';
   if(!state.jobs.length){ toast('아직 직업이 등록되지 않았어요. 선생님께 물어보세요.',true); return; }
+  // 이미 신청한 회차면 잠금 안내 화면으로 (다시 신청 불가)
+  let my=null;
   try{
-    const my=await api('getMyApplication',{classCode:state.student.classCode,number:state.student.number,name:state.student.name,round:rn});
-    if(my.application){ state.picks=[my.application.choice1||null,my.application.choice2||null,my.application.choice3||null];
-      if(reason) reason.value=my.application.reason||''; }
+    const r=await api('getMyApplication',{classCode:state.student.classCode,number:state.student.number,name:state.student.name,round:rn});
+    my=r.application;
   }catch(_){}
+  if(my){ showAlreadyApplied(rn,my); return; }
   document.getElementById('s-apply-who').textContent=state.student.name+' 어린이';
   document.getElementById('s-apply-month').textContent=roundLabel(rn);
   renderStudentJobs();
   go('screen-student-apply');
+}
+// 이미 신청한 학생: 자기가 낸 지망을 보여주고 다시 신청 못 하게 안내
+function showAlreadyApplied(rn,app){
+  const picks=[app.choice1,app.choice2,app.choice3].filter(Boolean);
+  document.getElementById('s-done-title').textContent='이미 신청했어요 ✅';
+  document.getElementById('s-done-msg').textContent=roundLabel(rn)+'에는 이미 신청을 마쳤어요. 한 번 신청하면 다시 신청할 수 없어요. 바꾸고 싶으면 선생님께 말씀해 주세요.';
+  const box=document.getElementById('s-result');
+  box.className='result-card';
+  box.style.display='block';
+  box.innerHTML='<p class="sub" style="margin:0 0 10px">내가 신청한 직업</p>'+
+    picks.map((id,i)=>`<div class="ch" style="display:inline-block;margin:3px 5px 3px 0"><b>${i+1}지망</b> ${esc(jobName(id))}</div>`).join('')+
+    (app.reason?`<div class="reason" style="margin-top:10px">💬 ${esc(app.reason)}</div>`:'');
+  go('screen-student-done');
 }
 function renderStudentJobs(){
   const grid=document.getElementById('s-job-grid');
@@ -1246,11 +1271,12 @@ function mockApi(action,p){
       if(cls.status[round]!=='open') return wait(Promise.reject(new Error('지금은 그 회차에 신청할 수 없어요. 열려 있는 회차를 골라 주세요.')));
       const me=db.students.find(s=>sameNum(s.number,p.number)&&s.name===p.name);
       if(!me) return wait(Promise.reject(new Error('명단에서 찾을 수 없어요. 번호와 이름을 확인해 주세요.')));
-      db.apps=db.apps.filter(a=>!(a.studentId===me.studentId&&a.round===round));
+      if(db.apps.some(a=>a.studentId===me.studentId&&a.round===round)) return wait(Promise.reject(new Error('이미 이 회차에 신청했어요. 한 번 신청하면 다시 신청할 수 없어요.')));
       db.apps.push({classCode:cls.classCode,round:round,studentId:me.studentId,number:String(p.number),studentName:p.name,choice1:p.choice1,choice2:p.choice2,choice3:p.choice3,reason:p.reason});
       return wait(ok({}));
     }
     case 'getMyApplication':{ const round=R(); const a=db.apps.find(a=>a.round===round&&sameNum(a.number,p.number)&&a.studentName===p.name); return wait(ok({application:a||null})); }
+    case 'getMyAppliedRounds':{ const rs=db.apps.filter(a=>sameNum(a.number,p.number)&&a.studentName===p.name).map(a=>a.round); return wait(ok({rounds:rs})); }
     case 'listApplications':{ const round=R(); return wait(ok({round:round,applications:db.apps.filter(a=>a.round===round)})); }
     case 'deleteApplication':{ const round=R(); db.apps=db.apps.filter(a=>!(a.studentId===p.studentId&&a.round===round)); return wait(ok({})); }
     case 'runAssignment':{

@@ -121,6 +121,7 @@ function dispatch_(action, p) {
     case 'reopenRound':         return reopenRound_(p);
     case 'submitApplication':   return submitApplication_(p);
     case 'getMyApplication':    return getMyApplication_(p);
+    case 'getMyAppliedRounds':  return getMyAppliedRounds_(p);
     case 'listApplications':    return listApplications_(p);
     case 'deleteApplication':   return deleteApplication_(p);
     case 'runAssignment':       return runAssignment_(p);
@@ -314,9 +315,14 @@ function submitApplication_(p) {
   });
   if (!me) throw new Error('명단에서 찾을 수 없어요. 번호와 이름을 다시 확인해 주세요.');
 
-  deleteRowsWhere_(SHEET_APPLICATIONS, function (rr) {
+  // 이미 이 회차에 신청했으면 다시 신청 불가 (덮어쓰기 방지)
+  // — 실수로 잘못 냈다면 선생님이 지원현황에서 삭제한 뒤 다시 신청하게 함
+  var already = readAll_(SHEET_APPLICATIONS).some(function (rr) {
     return rr.classCode === cls.classCode && Number(rr.round) === round && rr.studentId === me.studentId;
   });
+  if (already) {
+    throw new Error('이미 이 회차에 신청했어요. 한 번 신청하면 다시 신청할 수 없어요. (수정이 필요하면 선생님께 말씀해 주세요.)');
+  }
 
   getSheet_(SHEET_APPLICATIONS).appendRow([
     cls.classCode, round, me.studentId, number, name,
@@ -324,6 +330,19 @@ function submitApplication_(p) {
     String(p.reason || '').trim(), new Date(),
   ]);
   return { ok: true };
+}
+
+// 학생이 이미 신청한 회차 번호 목록 (신청 완료 표시용)
+function getMyAppliedRounds_(p) {
+  const cls = getClassRow_(p.classCode);
+  if (!cls) throw new Error('학급을 찾을 수 없어요.');
+  const number = String(p.number || '').trim();
+  const name   = String(p.name || '').trim();
+  const rounds = readAll_(SHEET_APPLICATIONS).filter(function (a) {
+    return a.classCode === cls.classCode && validRound_(a.round) &&
+           sameNumber_(a.number, number) && a.studentName === name;
+  }).map(function (a) { return Number(a.round); });
+  return { ok: true, rounds: rounds };
 }
 
 function getMyApplication_(p) {
