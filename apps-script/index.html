@@ -970,12 +970,15 @@ function renderAssignmentTab(meta){
   if(isPub){ banner.className='round-banner published'; banner.innerHTML='<span class="ti ti-eye-check"></span> '+roundLabel(meta.round)+' · 배정 공개됨 — 학생이 직업을 볼 수 있어요'; }
   else { banner.className='round-banner open'; banner.innerHTML='<span class="ti ti-door-enter"></span> '+roundLabel(meta.round)+' · 지원 받는 중 — 배정을 실행하고, 마음에 들면 마감해 공개하세요'; }
 
-  // 배정 실행 버튼 (열린 회차일 때만)
+  // 배정 실행 버튼 (항상 보이게 — 공개된 회차도 다시 배정할 수 있음)
+  state.viewRoundStatus = meta.roundStatus;
   const runBtn=document.getElementById('run-assign');
-  runBtn.style.display = isOpen ? 'flex' : 'none';
-  runBtn.innerHTML = state.assignments.length
-    ? '<span class="ti ti-refresh"></span> 다시 배정하기'
-    : '<span class="ti ti-wand"></span> 자동 배정 실행하기';
+  runBtn.style.display = 'flex';
+  runBtn.innerHTML = isPub
+    ? '<span class="ti ti-refresh"></span> 공개 취소하고 다시 배정하기'
+    : (state.assignments.length
+      ? '<span class="ti ti-refresh"></span> 다시 배정하기'
+      : '<span class="ti ti-wand"></span> 자동 배정 실행하기');
 
   // 결과 + 인쇄
   const box=document.getElementById('assign-result');
@@ -1010,11 +1013,18 @@ function renderAssignmentTab(meta){
   act.style.display='block'; act.innerHTML=html;
 }
 async function runAssign(){
+  // 공개된 회차를 다시 배정하려면 먼저 공개를 취소해야 함 (학생 결과가 잠시 가려짐)
+  if(state.viewRoundStatus==='published'){
+    if(!confirm(roundLabel(targetRound())+'은(는) 이미 공개된 회차예요.\n다시 배정하면 공개가 취소되고, 다시 공개하기 전까지 학생은 결과를 볼 수 없어요.\n계속할까요?')) return;
+  }
   const btn=document.getElementById('run-assign'); busy(btn,true,'배정 중');
   try{
+    if(state.viewRoundStatus==='published'){
+      await api('reopenRound',Object.assign(tdata(),{round:targetRound()}));
+    }
     const r=await api('runAssignment',Object.assign(tdata(),{round:targetRound()}));
     if(r.leftover>0) toast('자리보다 학생이 '+r.leftover+'명 많아요. 직업 정원을 늘려보세요.',true);
-    else toast('배정 완료! 🎉 결과를 확인하고 공개하세요.');
+    else toast('배정 완료! 🎉 결과를 확인하고 "마감하고 공개"를 누르면 학생이 볼 수 있어요.');
     await loadAssignmentTab();
   }catch(e){ toast(e.message,true); } finally{ busy(btn,false); }
 }
