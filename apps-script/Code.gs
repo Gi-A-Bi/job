@@ -724,8 +724,20 @@ function cleanupBadRounds() {
       return true;
     });
   });
+  // 각 학급의 currentRound를 실제 존재하는 최대 회차로 맞춤 (회차 이동 막힘 해소)
+  var fixed = 0;
+  readAll_(SHEET_CLASSES).forEach(function (c) {
+    if (!c.classCode) return;
+    var maxR = 0;
+    roundsOf_(c.classCode).forEach(function (r) { if (r.round > maxR) maxR = r.round; });
+    if (maxR >= 1 && Number(c.currentRound) !== maxR) {
+      setClassFields_(c.classCode, { currentRound: maxR });
+      fixed++;
+    }
+  });
   return '정리 완료 — 잘못된 회차 행 삭제: 회차 ' + removed.Rounds +
-    '개 · 지원 ' + removed.Applications + '개 · 배정 ' + removed.Assignments + '개';
+    '개 · 지원 ' + removed.Applications + '개 · 배정 ' + removed.Assignments +
+    '개 · 현재회차 보정 ' + fixed + '개 학급';
 }
 
 /**
@@ -852,6 +864,11 @@ function getClassRow_(classCode) {
   if (!row) return null;
   row.currentRound = Number(row.currentRound) || 1;
   row.status = row.status || ST_OPEN;
+  // 자기치유: Rounds 시트에 더 높은(유효한) 회차가 있으면 현재 회차를 그것에 맞춤
+  // (예: 2회차를 열었는데 currentRound가 1로 남아 회차 이동이 막히던 문제 방지)
+  var maxR = row.currentRound;
+  roundsOf_(row.classCode).forEach(function (r) { if (r.round > maxR) maxR = r.round; });
+  row.currentRound = maxR;
   return row;
 }
 
@@ -880,6 +897,8 @@ function publishedRoundsOf_(classCode) {
   return roundsOf_(classCode).filter(function (r) { return r.status === ST_PUBLISHED; }).map(function (r) { return r.round; });
 }
 function setRoundStatus_(classCode, round, status) {
+  if (!validRound_(round)) return;   // 유령 회차(날짜·음수 등) 생성 방지 — 근본 차단
+  round = Number(round);
   var sheet = getSheet_(SHEET_ROUNDS);
   var data = sheet.getDataRange().getValues();
   var header = data[0];
